@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم متجر زورة - ربط Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #FDFBF7; color: #5C3A21; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
+            <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
+                <span>🛠️</span> إنشاء فاتورة حجز جديدة
+            </h2>
+            
+            <form id="invoiceForm" oninput="updateInvoicePreview()" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold mb-1">اسم العميل:</label>
+                    <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1">رقم الواتساب (مع رمز الدولة وبدون +):</label>
+                    <input type="text" id="inputPhone" value="96896379225" placeholder="968xxxxxxx" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold mb-1">رقم الفاتورة:</label>
+                        <input type="text" id="inputInvId" value="INV0583" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">تاريخ الحفل:</label>
+                        <input type="date" id="inputEventDate" value="2026-08-15" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold mb-1">وصف الحجز / الثيم:</label>
+                    <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold mb-1">سعر الإيجار:</label>
+                        <input type="number" id="inputRate" value="210" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">التأمين المسترد:</label>
+                        <input type="number" id="inputInsurance" value="20" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">المقدم المدفوع:</label>
+                        <input type="number" id="inputPaid" value="50" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                    </div>
+                </div>
+
+                <button type="button" onclick="saveInvoiceToSupabase()" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] transition cursor-pointer mt-4 shadow-sm flex justify-center items-center gap-2">
+                    <span>حفظ الفاتورة في قاعدة البيانات 💾</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="lg:col-span-7 space-y-4">
+            <div class="flex justify-end gap-2">
+                <button onclick="generatePDF()" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
+                    تحميل PDF 📄
+                </button>
+                <button onclick="sendWhatsApp()" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#20ba5a] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
+                    إرسال واتساب 💬
+                </button>
+            </div>
+
+            <div id="invoice" class="bg-white p-6 md:p-8 rounded-xl border border-[#EFEAE2] shadow-sm">
+                <div class="flex justify-between items-center border-b border-[#EFEAE2] pb-4 mb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-[#5C3A21] mb-1">زُورَة</h1>
+                        <p class="text-xs text-[#8C7662]">لتأجير مستلزمات الحول حول والحفلات</p>
+                    </div>
+                    <div class="w-20 h-20 rounded-full border border-[#5C3A21] flex items-center justify-center bg-[#FDFBF7]">
+                        <span class="text-[#5C3A21] font-bold text-xs">زورة</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6 bg-[#FDFBF7] p-3 rounded-lg border border-[#EFEAE2] text-xs">
+                    <div>
+                        <h3 class="font-bold text-[#A39081] mb-1">صادرة إلى (BILL TO):</h3>
+                        <p class="font-bold text-sm text-[#5C3A21]" id="viewName">سعيد</p>
+                        <p class="text-[#8C7662]" id="viewPhone">96379225</p>
+                    </div>
+                    <div class="text-left">
+                        <h2 class="font-bold text-[#5C3A21] text-sm">فاتورة رقم: <span id="viewInvId">INV0583</span></h2>
+                        <p class="font-bold text-[#5C3A21] mt-1">تاريخ المناسبة: <span id="viewEventDate">2026-08-15</span></p>
+                    </div>
+                </div>
+
+                <table class="w-full text-right text-xs border-collapse mb-6">
+                    <thead>
+                        <tr class="bg-[#5C3A21] text-white">
+                            <th class="p-2 rounded-r">البيان (DESCRIPTION)</th>
+                            <th class="p-2 text-center">السعر</th>
+                            <th class="p-2 text-center">الكمية</th>
+                            <th class="p-2 text-left rounded-l">الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#EFEAE2]">
+                        <tr class="text-[#5C3A21]">
+                            <td class="p-3 font-medium" id="viewDesc">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</td>
+                            <td class="p-3 text-center" id="viewRateTable">210.000 ر.ع</td>
+                            <td class="p-3 text-center">1</td>
+                            <td class="p-3 text-left font-bold" id="viewAmountTable">210.000 ر.ع</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="flex justify-between items-start text-[11px] gap-4">
+                    <div class="text-[#8C7662] max-w-xs space-y-1">
+                        <p class="font-bold text-[#5C3A21]">📌 شروط التأجير:</p>
+                        <p>• يتضمن الحجز تأميناً مسترداً يُرجع بعد فحص الأدوات.</p>
+                    </div>
+                    <div class="w-48 space-y-1 text-[#5C3A21] border-t border-[#EFEAE2] pt-2">
+                        <div class="flex justify-between">
+                            <span>المجموع الفرعي:</span>
+                            <span id="viewSubtotal">210.000 ر.ع</span>
+                        </div>
+                        <div class="flex justify-between text-[#8C7662]">
+                            <span>التأمين (مسترد):</span>
+                            <span id="viewInsurance">20.000 ر.ع</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-xs border-t border-[#EFEAE2] pt-1">
+                            <span>الإجمالي الكلي:</span>
+                            <span id="viewTotal">230.000 ر.ع</span>
+                        </div>
+                        <div class="flex justify-between text-emerald-700 bg-emerald-50 p-1 rounded">
+                            <span>المدفوع مقدماً:</span>
+                            <span id="viewPaid">50.000 ر.ع</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1 rounded border border-amber-200">
+                            <span>المتبقي المستحق:</span>
+                            <span id="viewRemaining">180.000 ر.ع</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- إعدادات سوبابيز الأساسية ---
+        const SUPABASE_URL = "ضع_رابط_المشروع_هنا"; 
+        const SUPABASE_ANON_KEY = "ضع_مفتاح_الـ_anon_هنا";
+        
+        // إنشاء اتصال بقاعدة البيانات
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function updateInvoicePreview() {
+            const name = document.getElementById('inputName').value;
+            const phone = document.getElementById('inputPhone').value;
+            const invId = document.getElementById('inputInvId').value;
+            const eventDate = document.getElementById('inputEventDate').value;
+            const desc = document.getElementById('inputDesc').value;
+            
+            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+
+            const total = rate + insurance;
+            const remaining = total - paid;
+
+            document.getElementById('viewName').innerText = name;
+            document.getElementById('viewPhone').innerText = phone;
+            document.getElementById('viewInvId').innerText = invId;
+            document.getElementById('viewEventDate').innerText = eventDate;
+            document.getElementById('viewDesc').innerText = desc;
+            
+            document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
+            document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
+            document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
+            document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
+            document.getElementById('viewTotal').跡 = total.toFixed(3) + " ر.ع";
+            document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
+            document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
+            document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
+        }
+
+        // دالة الحفظ الفعلي المتزامن داخل الجداول الثلاثة في Supabase
+        async function saveInvoiceToSupabase() {
+            const btn = document.getElementById('btnSave');
+            btn.innerText = "جاري الحفظ... ⏳";
+            btn.disabled = true;
+
+            const name = document.getElementById('inputName').value;
+            const phone = document.getElementById('inputPhone').value;
+            const invId = document.getElementById('inputInvId').value;
+            const eventDate = document.getElementById('inputEventDate').value;
+            const desc = document.getElementById('inputDesc').value;
+            
+            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+            const total = rate + insurance;
+
+            try {
+                // 1. إدخال أو جلب العميل (بحيث لو تكرر الرقم يأخذ العميل الحالي)
+                let { data: customer, error: custError } = await supabase
+                    .from('customers')
+                    .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
+                    .select()
+                    .single();
+
+                if (custError) throw custError;
+
+                // 2. إدخال الفاتورة في جدول الفواتير
+                const { data: invoice, error: invError } = await supabase
+                    .from('invoices')
+                    .insert({
+                        customer_id: customer.id,
+                        invoice_number: invId,
+                        event_date: eventDate,
+                        insurance_amount: insurance,
+                        subtotal_amount: rate,
+                        total_amount: total,
+                        paid_amount: paid,
+                        status: remaining <= 0 ? 'paid' : 'unpaid'
+                    })
+                    .select()
+                    .single();
+
+                if (invError) throw invError;
+
+                // 3. إدخال تفاصيل المادة المستأجرة
+                const { error: itemError } = await supabase
+                    .from('invoice_items')
+                    .insert({
+                        invoice_id: invoice.id,
+                        item_description: desc,
+                        rate: rate,
+                        quantity: 1,
+                        amount: rate
+                    });
+
+                if (itemError) throw itemError;
+
+                alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} لمتجر زورة بنجاح في السحاب.`);
+
+            } catch (err) {
+                console.error(err);
+                alert("حدث خطأ أثناء الحفظ: " + err.message);
+            } finally {
+                btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
+                btn.disabled = false;
+            }
+        }
+
+        function generatePDF() {
+            const element = document.getElementById('invoice');
+            const invId = document.getElementById('inputInvId').value;
+            const opt = {
+                margin: 0.3,
+                filename: `Zorah_Invoice_${invId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function sendWhatsApp() {
+            const phone = document.getElementById('inputPhone').value;
+            const name = document.getElementById('inputName').value;
+            const invId = document.getElementById('inputInvId').value;
+            const eventDate = document.getElementById('inputEventDate').value;
+            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+            const remaining = (rate + insurance - paid).toFixed(3);
+            
+            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
+            
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+        }
+    </script>
+</body>
+</html>
