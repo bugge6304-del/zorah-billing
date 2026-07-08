@@ -8,18 +8,40 @@
     <script>eruda.init();</script>
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #FDFBF7; color: #5C3A21; }
+
+        /* 🖨️ تنسيق خاص بالطباعة لحل مشكلة التعليق على الأيباد نهائياً */
+        @media print {
+            /* إخفاء كل شيء ما عدا الفاتورة نفسها */
+            body * {
+                visibility: hidden;
+                background-color: white !important;
+            }
+            #invoice, #invoice * {
+                visibility: visible;
+            }
+            /* جعل الفاتورة تأخذ الصفحة كاملة بالطباعة وبدون حواف مشوهة */
+            #invoice {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
+        <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit no-print">
             <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
             </h2>
@@ -72,9 +94,9 @@
         </div>
 
         <div class="lg:col-span-7 space-y-4">
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-2 no-print">
                 <button onclick="generatePDF()" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
-                    تحميل PDF 📄
+                    تحميل PDF / طباعة 📄
                 </button>
                 <button onclick="sendWhatsApp()" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#20ba5a] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
                     إرسال واتساب 💬
@@ -283,25 +305,10 @@
             }
         }
 
-        // 🎯 الدالة المصححة والمضمونة للتحميل المباشر والآمن على جميع الأجهزة اللوحية والموبايل
+        // 🎯 الاستدعاء المباشر لنظام طباعة الجهاز لتفادي أي تعليق أو تجميد في الأيباد
         function generatePDF() {
-            const element = document.getElementById('invoice');
-            const invId = document.getElementById('inputInvId').value;
-            
-            const opt = {
-                margin: 0.3,
-                filename: `Zorah_Invoice_${invId}.pdf`,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { 
-                    scale: window.devicePixelRatio || 2, 
-                    useCORS: true, 
-                    logging: false 
-                },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-            
-            // استخدام الصيغة المباشرة والسريعة لتفادي توقف الـ DOM Parsing في متصفحات Huawei/Chrome
-            html2pdf().from(element).set(opt).save();
+            // استدعاء أمر الطباعة للنظام، وسيفتح لك خيار "حفظ كملف PDF" فوراً وبدقة ممتازة وبأمان 100%
+            window.print();
         }
 
         function sendWhatsApp() {
