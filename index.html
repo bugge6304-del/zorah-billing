@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم متجر زورة - نظام الفواتير</title>
-    <!-- أداة الفحص للأيباد والأندرويد - ستظهر كأيقونة ترس في أسفل الشاشة -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     
@@ -20,7 +19,6 @@
 
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- القسم الأيمن: لوحة إدخال البيانات -->
         <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
             <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
@@ -32,7 +30,7 @@
                     <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-1">رقم الواتساب:</label>
+                    <label class="block text-xs font-bold mb-1">رقم الواتساب (مع رمز الدولة وبدون +):</label>
                     <input type="text" id="inputPhone" value="96896379225" placeholder="968xxxxxxx" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                 </div>
 
@@ -73,7 +71,6 @@
             </form>
         </div>
 
-        <!-- القسم الأيسر: معاينة الفاتورة -->
         <div class="lg:col-span-7 space-y-4">
             <div class="flex justify-end gap-2">
                 <button onclick="generatePDF()" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
@@ -201,7 +198,7 @@
         async function saveInvoiceToSupabase() {
             console.log("تم الضغط على زر الحفظ بنجاح!");
             if (!supabaseClient) {
-                alert("مكتبة Supabase لم تتحمل بشكل صحيح في المتصفح.");
+                alert("مكتبة Supabase لم تتحمل بشكل صحيح.");
                 return;
             }
 
@@ -222,8 +219,8 @@
             const remaining = total - paid;
 
             try {
+                // 1. إدخال أو جلب العميل (تم إصلاح السطر المكرر هنا)
                 let { data: customer, error: custError } = await supabaseClient
-                    .from('customers')
                     .from('customers')
                     .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
                     .select()
@@ -231,6 +228,7 @@
 
                 if (custError) throw custError;
 
+                // 2. إدخال الفاتورة
                 const { data: invoice, error: invError } = await supabaseClient
                     .from('invoices')
                     .insert({
@@ -248,6 +246,7 @@
 
                 if (invError) throw invError;
 
+                // 3. إدخال تفاصيل المادة المستأجرة
                 const { error: itemError } = await supabaseClient
                     .from('invoice_items')
                     .insert({
@@ -260,7 +259,7 @@
 
                 if (itemError) throw itemError;
 
-                alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} بنجاح.`);
+                alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} بنجاح في السحاب.`);
 
             } catch (err) {
                 console.error("خطأ أثناء إرسال البيانات لسوبابيز:", err);
