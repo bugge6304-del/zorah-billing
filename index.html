@@ -36,8 +36,8 @@
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-bold mb-1">رقم الفاتورة:</label>
-                        <input type="text" id="inputInvId" value="INV0583" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                        <label class="block text-xs font-bold mb-1">رقم الفاتورة (تلقائي ⚡):</label>
+                        <input type="text" id="inputInvId" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#EFEAE2] text-[#8C7662] font-bold focus:outline-none" readonly>
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1">تاريخ الحفل:</label>
@@ -99,7 +99,7 @@
                         <p class="text-[#8C7662]" id="viewPhone">96896379225</p>
                     </div>
                     <div class="text-left">
-                        <h2 class="font-bold text-[#5C3A21] text-sm">فاتورة رقم: <span id="viewInvId">INV0583</span></h2>
+                        <h2 class="font-bold text-[#5C3A21] text-sm">فاتورة رقم: <span id="viewInvId">توليد...</span></h2>
                         <p class="font-bold text-[#5C3A21] mt-1">تاريخ المناسبة: <span id="viewEventDate">2026-08-15</span></p>
                     </div>
                 </div>
@@ -166,6 +166,23 @@
             console.error("خطأ في تشغيل مكتبة سوبابيز: ", e);
         }
 
+        // دالة توليد رقم الفاتورة التلقائي بناءً على الوقت والملي ثانية لمنع التكرار نهائياً
+        function setAutomaticInvoiceId() {
+            const now = new Date();
+            const year = now.getFullYear().toString().slice(-2); 
+            const timestamp = now.getTime().toString().slice(-6); 
+            const autoId = `INV-${year}${timestamp}`;
+            
+            document.getElementById('inputInvId').value = autoId;
+            document.getElementById('viewInvId').innerText = autoId;
+        }
+
+        // تشغيل توليد الرقم التلقائي بمجرد فتح الصفحة
+        window.onload = function() {
+            setAutomaticInvoiceId();
+            updateInvoicePreview();
+        };
+
         function updateInvoicePreview() {
             const name = document.getElementById('inputName').value;
             const phone = document.getElementById('inputPhone').value;
@@ -196,7 +213,6 @@
         }
 
         async function saveInvoiceToSupabase() {
-            console.log("تم الضغط على زر الحفظ بنجاح!");
             if (!supabaseClient) {
                 alert("مكتبة Supabase لم تتحمل بشكل صحيح.");
                 return;
@@ -219,7 +235,7 @@
             const remaining = total - paid;
 
             try {
-                // 1. إدخال أو جلب العميل (تم إصلاح السطر المكرر هنا)
+                // 1. إدخال أو جلب العميل
                 let { data: customer, error: custError } = await supabaseClient
                     .from('customers')
                     .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
@@ -260,27 +276,38 @@
                 if (itemError) throw itemError;
 
                 alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} بنجاح في السحاب.`);
+                
+                // بعد النجاح، قم بتوليد رقم فاتورة جديد تلقائياً للفاتورة القادمة
+                setAutomaticInvoiceId();
+                updateInvoicePreview();
 
             } catch (err) {
                 console.error("خطأ أثناء إرسال البيانات لسوبابيز:", err);
                 alert("حدث خطأ أثناء الحفظ: " + err.message);
-            } finally {
+            } finaly {
                 btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
                 btn.disabled = false;
             }
         }
 
+        // دالة الـ PDF المعدلة لتعمل على الأيباد والأندرويد بدون تجميد
         function generatePDF() {
             const element = document.getElementById('invoice');
             const invId = document.getElementById('inputInvId').value;
+            
             const opt = {
-                margin: 0.3,
+                margin: [0.2, 0.2, 0.2, 0.2],
                 filename: `Zorah_Invoice_${invId}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+            
+            // التشغيل المباشر المناسب للمتصفحات اللوحية
+            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
+                // فتح في علامة تبويب جديدة لتفادي قيود التحميل على الأندرويد
+                window.open(pdf.output('bloburl'), '_blank');
+            });
         }
 
         function sendWhatsApp() {
