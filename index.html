@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم متجر زورة - ربط Supabase</title>
+    <title>لوحة تحكم متجر زورة - نظام الفواتير</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- تضمين مكتبة Supabase الرسمية -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap');
@@ -16,12 +17,14 @@
 
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
+        <!-- القسم الأيمن: لوحة إدخال البيانات (Form) -->
         <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
             <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
             </h2>
             
             <form id="invoiceForm" oninput="updateInvoicePreview()" class="space-y-4">
+                <!-- بيانات العميل -->
                 <div>
                     <label class="block text-xs font-bold mb-1">اسم العميل:</label>
                     <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
@@ -42,11 +45,13 @@
                     </div>
                 </div>
 
+                <!-- تفاصيل الحجز -->
                 <div>
                     <label class="block text-xs font-bold mb-1">وصف الحجز / الثيم:</label>
                     <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
                 </div>
 
+                <!-- المبالغ الحسابية -->
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-xs font-bold mb-1">سعر الإيجار:</label>
@@ -62,12 +67,14 @@
                     </div>
                 </div>
 
+                <!-- زر الحفظ الفعلي في سوبابيز -->
                 <button type="button" onclick="saveInvoiceToSupabase()" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] transition cursor-pointer mt-4 shadow-sm flex justify-center items-center gap-2">
                     <span>حفظ الفاتورة في قاعدة البيانات 💾</span>
                 </button>
             </form>
         </div>
 
+        <!-- القسم الأيسر: معاينة الفاتورة والأزرار -->
         <div class="lg:col-span-7 space-y-4">
             <div class="flex justify-end gap-2">
                 <button onclick="generatePDF()" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
@@ -78,6 +85,7 @@
                 </button>
             </div>
 
+            <!-- الفاتورة الحية -->
             <div id="invoice" class="bg-white p-6 md:p-8 rounded-xl border border-[#EFEAE2] shadow-sm">
                 <div class="flex justify-between items-center border-b border-[#EFEAE2] pb-4 mb-4">
                     <div>
@@ -153,11 +161,9 @@
     </div>
 
     <script>
-        // --- إعدادات سوبابيز الأساسية ---
-        // --- إعدادات سوبابيز الأساسية ---
-const SUPABASE_URL = "https://nbgqoggilutczmzqxydp.supabase.co"; 
-const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
-
+        // --- إعدادات سوبابيز الأساسية المصححة الخاصة بك ---
+        const SUPABASE_URL = "https://nbgqoggilutczmzqxydp.supabase.co"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
         
         // إنشاء اتصال بقاعدة البيانات
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -186,7 +192,6 @@ const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
             document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
             document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
             document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
-            document.getElementById('viewTotal').跡 = total.toFixed(3) + " ر.ع";
             document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
             document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
             document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
@@ -208,9 +213,10 @@ const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
             const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
             const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
             const total = rate + insurance;
+            const remaining = total - paid;
 
             try {
-                // 1. إدخال أو جلب العميل (بحيث لو تكرر الرقم يأخذ العميل الحالي)
+                // 1. إدخال أو جلب العميل
                 let { data: customer, error: custError } = await supabase
                     .from('customers')
                     .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
