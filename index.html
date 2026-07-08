@@ -284,7 +284,7 @@
             } catch (err) {
                 console.error("خطأ أثناء إرسال البيانات لسوبابيز:", err);
                 alert("حدث خطأ أثناء الحفظ: " + err.message);
-            } finaly {
+            } finally {
                 btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
                 btn.disabled = false;
             }
