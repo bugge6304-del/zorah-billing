@@ -283,31 +283,25 @@
             }
         }
 
-        // 🎯 دالة الـ PDF الجديدة والمجربة للأجهزة اللوحية (التنزيل الصامت المباشر)
+        // 🎯 الدالة المصححة والمضمونة للتحميل المباشر والآمن على جميع الأجهزة اللوحية والموبايل
         function generatePDF() {
             const element = document.getElementById('invoice');
             const invId = document.getElementById('inputInvId').value;
             
             const opt = {
-                margin: 0.2,
+                margin: 0.3,
                 filename: `Zorah_Invoice_${invId}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { 
+                    scale: window.devicePixelRatio || 2, 
+                    useCORS: true, 
+                    logging: false 
+                },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
             
-            // استخدام الصيغة الرسمية الآمنة للتنزيل المباشر كـ Blob بدون فتح تبويبات جديدة تسبب الحظر
-            html2pdf().set(opt).from(element).toPdf().output('blob').then(function(blob) {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `Zorah_Invoice_${invId}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }).catch(function(error) {
-                console.error("مشكلة في توليد الـ PDF:", error);
-                alert("حدث خطأ أثناء تحميل الملف، راجع الـ Console.");
-            });
+            // استخدام الصيغة المباشرة والسريعة لتفادي توقف الـ DOM Parsing في متصفحات Huawei/Chrome
+            html2pdf().from(element).set(opt).save();
         }
 
         function sendWhatsApp() {
