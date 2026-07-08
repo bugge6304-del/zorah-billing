@@ -166,7 +166,6 @@
             console.error("خطأ في تشغيل مكتبة سوبابيز: ", e);
         }
 
-        // دالة توليد رقم الفاتورة التلقائي بناءً على الوقت والملي ثانية لمنع التكرار نهائياً
         function setAutomaticInvoiceId() {
             const now = new Date();
             const year = now.getFullYear().toString().slice(-2); 
@@ -177,7 +176,6 @@
             document.getElementById('viewInvId').innerText = autoId;
         }
 
-        // تشغيل توليد الرقم التلقائي بمجرد فتح الصفحة
         window.onload = function() {
             setAutomaticInvoiceId();
             updateInvoicePreview();
@@ -235,7 +233,6 @@
             const remaining = total - paid;
 
             try {
-                // 1. إدخال أو جلب العميل
                 let { data: customer, error: custError } = await supabaseClient
                     .from('customers')
                     .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
@@ -244,7 +241,6 @@
 
                 if (custError) throw custError;
 
-                // 2. إدخال الفاتورة
                 const { data: invoice, error: invError } = await supabaseClient
                     .from('invoices')
                     .insert({
@@ -262,7 +258,6 @@
 
                 if (invError) throw invError;
 
-                // 3. إدخال تفاصيل المادة المستأجرة
                 const { error: itemError } = await supabaseClient
                     .from('invoice_items')
                     .insert({
@@ -276,8 +271,6 @@
                 if (itemError) throw itemError;
 
                 alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} بنجاح في السحاب.`);
-                
-                // بعد النجاح، قم بتوليد رقم فاتورة جديد تلقائياً للفاتورة القادمة
                 setAutomaticInvoiceId();
                 updateInvoicePreview();
 
@@ -290,23 +283,30 @@
             }
         }
 
-        // دالة الـ PDF المعدلة لتعمل على الأيباد والأندرويد بدون تجميد
+        // 🎯 دالة الـ PDF الجديدة والمجربة للأجهزة اللوحية (التنزيل الصامت المباشر)
         function generatePDF() {
             const element = document.getElementById('invoice');
             const invId = document.getElementById('inputInvId').value;
             
             const opt = {
-                margin: [0.2, 0.2, 0.2, 0.2],
+                margin: 0.2,
                 filename: `Zorah_Invoice_${invId}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
             
-            // التشغيل المباشر المناسب للمتصفحات اللوحية
-            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
-                // فتح في علامة تبويب جديدة لتفادي قيود التحميل على الأندرويد
-                window.open(pdf.output('bloburl'), '_blank');
+            // استخدام الصيغة الرسمية الآمنة للتنزيل المباشر كـ Blob بدون فتح تبويبات جديدة تسبب الحظر
+            html2pdf().set(opt).from(element).toPdf().output('blob').then(function(blob) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Zorah_Invoice_${invId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(function(error) {
+                console.error("مشكلة في توليد الـ PDF:", error);
+                alert("حدث خطأ أثناء تحميل الملف، راجع الـ Console.");
             });
         }
 
