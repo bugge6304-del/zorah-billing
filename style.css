@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght=300;400;700&display=swap');
+
+body { 
+    font-family: 'Cairo', sans-serif; 
+    background-color: #FDFBF7; 
+    color: #5C3A21; 
+}
+
+/* 🖨️ تنسيق ذكي خاص بالطباعة وحفظ PDF لمنع تعليق المتصفح */
+@media print {
+    body * {
+        visibility: hidden;
+        background-color: white !important;
+    }
+    #invoice, #invoice * {
+        visibility: visible;
+    }
+    #invoice {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
