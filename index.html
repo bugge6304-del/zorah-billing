@@ -251,6 +251,7 @@
                     totalPaid += inv.paid_amount; totalRemaining += rem; totalInsurance += inv.insurance_amount;
                     const badge = rem <= 0 ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">مدفوعة</span>` : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold text-[10px]">متبقي</span>`;
                     
+                    // تمرير معرّف قاعدة البيانات ورقم الفاتورة كـ نصوص آمنة
                     tableHtml += `
                     <tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]">
                         <td class="p-3 font-bold">${inv.invoice_number}</td>
@@ -262,7 +263,7 @@
                         <td class="p-3">${badge}</td>
                         <td class="p-3 text-center flex justify-center gap-1.5">
                             <button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition hover:bg-[#1ebd54] active:scale-90 shadow-sm border-b border-[#168a3d]">واتساب 💬</button>
-                            <button onclick="loadInvoiceToEdit('${inv.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition hover:bg-blue-700 active:scale-90 shadow-sm border-b border-blue-800">تعديل ✏️</button>
+                            <button onclick="loadInvoiceToEdit('${inv.id}', '${inv.invoice_number}')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition hover:bg-blue-700 active:scale-90 shadow-sm border-b border-blue-800">تعديل ✏️</button>
                             <button onclick="deleteInvoiceFromDatabase('${inv.id}', '${inv.invoice_number}')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition hover:bg-red-700 active:scale-90 shadow-sm border-b border-red-800">حذف 🗑️</button>
                         </td>
                     </tr>`;
@@ -275,12 +276,19 @@
             } catch (err) { console.error(err); }
         }
 
-        // ✏️ دالة التعديل المصححة تماماً للتعامل مع هيكل المصفوفة أو الكائن المفرد
-        function loadInvoiceToEdit(dbId) {
-            const inv = localInvoicesCache.find(i => i.id === dbId);
-            if (!inv) return;
+        // ✏️ دالة التعديل الاحترافية والمحدثة لحل مشكلة عدم العثور على الفاتورة نهائياً
+        function loadInvoiceToEdit(dbId, invoiceNumber) {
+            console.log("محاولة تعديل الفاتورة:", dbId, invoiceNumber);
+            
+            // البحث المرن: عبر المعرف الفرعي أو رقم الفاتورة النصي لضمان التطابق التام
+            const inv = localInvoicesCache.find(i => i.id == dbId || i.invoice_number == invoiceNumber);
+            
+            if (!inv) {
+                alert("🛑 لم يتم العثور على الفاتورة المطلوبة في ذاكرة النظام المؤقتة! جاري تحديث اللوحة...");
+                fetchDashboardData(true);
+                return;
+            }
 
-            // حل مشكلة استخراج محتوى العنصر التابع بمرونة تامة
             let itemDescription = "";
             if (inv.invoice_items) {
                 if (Array.isArray(inv.invoice_items)) {
@@ -290,6 +298,7 @@
                 }
             }
 
+            // تعبئة حقول الاستمارة بالبيانات المسترجعة فوراً
             document.getElementById('editInvoiceId').value = inv.id;
             document.getElementById('inputName').value = inv.customers?.name || "";
             document.getElementById('inputPhone').value = inv.customers?.phone || "";
@@ -300,11 +309,13 @@
             document.getElementById('inputInsurance').value = inv.insurance_amount;
             document.getElementById('inputPaid').value = inv.paid_amount;
 
+            // تغيير شكل زر الإرسال إلى وضع التحديث
             document.getElementById('formTitle').innerText = `تعديل الفاتورة (${inv.invoice_number})`;
             document.getElementById('btnSave').innerText = "تحديث الفاتورة الحالية 🔄";
             document.getElementById('btnSave').className = "w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 cursor-pointer mt-4 shadow-sm text-sm border-b-4 border-blue-800";
             document.getElementById('btnCancelEdit').classList.remove('hidden');
 
+            // صعود سلس لأعلى الصفحة لرؤية استمارة التعديل
             window.scrollTo({ top: 0, behavior: 'smooth' });
             updateInvoicePreview();
         }
