@@ -224,12 +224,17 @@
             if(document.getElementById('viewRemaining')) document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
         }
 
-        async function fetchDashboardData() {
-            if (!supabaseClient || new URLSearchParams(window.location.search).has('inv')) return;
+        async function fetchDashboardData(isManualRefresh = false) {
+            if (!supabaseClient) return;
+            // التحقق من جلب البيانات يدوياً لكسر شرط الحماية إذا تم الضغط على الزر
+            if (!isManualRefresh && new URLSearchParams(window.location.search).has('inv')) return;
+            
             try {
+                const tbody = document.getElementById('dashboardTableBody');
+                if (tbody && isManualRefresh) tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">جاري تحديث البيانات الآن... 🔄</td></tr>`;
+
                 let { data: invoices, error } = await supabaseClient.from('invoices').select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, status, customers ( name, phone )').order('created_at', { ascending: false });
                 if (error) throw error;
-                const tbody = document.getElementById('dashboardTableBody');
                 if (!tbody) return;
                 if (!invoices || invoices.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير مسجلة 📥</td></tr>`; return;
@@ -293,7 +298,7 @@
                 let { data: cust } = await supabaseClient.from('customers').upsert({ name, phone }, { onConflict: 'phone' }).select().single();
                 let { data: inv } = await supabaseClient.from('invoices').insert({ customer_id: cust.id, invoice_number: invId, event_date: eventDate, insurance_amount: insurance, subtotal_amount: rate, total_amount: total, paid_amount: paid, status: (total - paid <= 0) ? 'paid' : 'unpaid' }).select().single();
                 await supabaseClient.from('invoice_items').insert({ invoice_id: inv.id, item_description: desc, rate, quantity: 1, amount: rate });
-                alert("🎉 تم حفظ الفاتورة وإدراجها بنجاح!"); setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
+                alert("🎉 تم حفظ الفاتورة وإدراجها بنجاح!"); setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData(true);
             } catch (err) { alert(err.message); } finally { btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; }
         }
 
@@ -330,7 +335,8 @@
                 setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
                 document.getElementById('invoiceForm').addEventListener('input', updateInvoicePreview);
                 document.getElementById('btnSave').addEventListener('click', saveInvoiceToSupabase);
-                document.getElementById('btnRefreshDash').addEventListener('click', fetchDashboardData);
+                // تمرير true هنا لإجبار النظام على تحديث الجدول وتجاوز الحماية المسبقة
+                document.getElementById('btnRefreshDash').addEventListener('click', () => fetchDashboardData(true));
                 document.getElementById('btnWhatsApp').addEventListener('click', sendWhatsAppWithPDF);
                 document.getElementById('btnPrint').addEventListener('click', () => window.print());
             }
