@@ -3,48 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم متجر زورة - نظام الفواتير</title>
+    <title>لوحة تحكم متجر زورة - نظام الفواتير الشامل</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #FDFBF7; color: #5C3A21; }
-
-        /* 🖨️ تنسيق ذكي خاص بالطباعة وحفظ PDF لحل مشكلة التعليق تماماً */
-        @media print {
-            body * {
-                visibility: hidden;
-                background-color: white !important;
-            }
-            #invoice, #invoice * {
-                visibility: visible;
-            }
-            #invoice {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 space-y-8">
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
             <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
             </h2>
             
-            <form id="invoiceForm" oninput="updateInvoicePreview()" class="space-y-4">
+            <form id="invoiceForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold mb-1">اسم العميل:</label>
                     <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
@@ -85,7 +62,7 @@
                     </div>
                 </div>
 
-                <button type="button" onclick="saveInvoiceToSupabase()" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] transition cursor-pointer mt-4 shadow-sm flex justify-center items-center gap-2">
+                <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] transition cursor-pointer mt-4 shadow-sm flex justify-center items-center gap-2">
                     <span>حفظ الفاتورة في قاعدة البيانات 💾</span>
                 </button>
             </form>
@@ -93,10 +70,10 @@
 
         <div class="lg:col-span-7 space-y-4">
             <div class="flex justify-end gap-2">
-                <button onclick="generatePDF()" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
+                <button id="btnPrint" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
                     تحميل PDF / طباعة 📄
                 </button>
-                <button onclick="sendWhatsApp()" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#20ba5a] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
+                <button id="btnWhatsApp" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#20ba5a] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
                     إرسال واتساب 💬
                 </button>
             </div>
@@ -175,197 +152,64 @@
         </div>
     </div>
 
-    <script>
-        const SUPABASE_URL = "https://nbgqoggilutczmzqxydp.supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
-        
-        let supabaseClient;
-        try {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch(e) {
-            console.error("❌ خطأ في تشغيل مكتبة سوبابيز: ", e);
-            alert("⚠️ تنبيه: فشل الاتصال بمكتبة Supabase الأساسية. تحقق من رابط الاتصال.");
-        }
+    <div class="max-w-7xl mx-auto bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#EFEAE2] pb-4 gap-2">
+            <div>
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <span>📊</span> لوحة تحكم وإحصائيات المتجر
+                </h2>
+                <p class="text-xs text-[#8C7662] mt-0.5">متابعة فواتير متجر زورة الحية من السحاب</p>
+            </div>
+            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-[#4a2e1a] transition flex items-center gap-1">
+                تحديث البيانات 🔄
+            </button>
+        </div>
 
-        function setAutomaticInvoiceId() {
-            try {
-                const now = new Date();
-                const year = now.getFullYear().toString().slice(-2); 
-                const timestamp = now.getTime().toString().slice(-6); 
-                const autoId = `INV-${year}${timestamp}`;
-                
-                document.getElementById('inputInvId').value = autoId;
-                document.getElementById('viewInvId').innerText = autoId;
-            } catch (err) {
-                console.error("❌ خطأ أثناء توليد رقم الفاتورة:", err);
-            }
-        }
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-[#FDFBF7] p-4 rounded-xl border border-[#EFEAE2]">
+                <p class="text-xs font-bold text-[#8C7662]">إجمالي الفواتير</p>
+                <p id="statTotalInvoices" class="text-2xl font-bold mt-1 text-[#5C3A21]">0</p>
+            </div>
+            <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+                <p class="text-xs font-bold text-emerald-800">إجمالي المبالغ المحصلة</p>
+                <p id="statTotalPaid" class="text-2xl font-bold mt-1 text-emerald-700">0.000 ر.ع</p>
+            </div>
+            <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+                <p class="text-xs font-bold text-amber-900">المبالغ المعلقة (المتبقية)</p>
+                <p id="statTotalRemaining" class="text-2xl font-bold mt-1 text-amber-700">0.000 ر.ع</p>
+            </div>
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                <p class="text-xs font-bold text-blue-900">إجمالي مبالغ التأمين</p>
+                <p id="statTotalInsurance" class="text-2xl font-bold mt-1 text-blue-700">0.000 ر.ع</p>
+            </div>
+        </div>
 
-        window.onload = function() {
-            setAutomaticInvoiceId();
-            updateInvoicePreview();
-        };
+        <div class="space-y-2">
+            <h3 class="text-sm font-bold text-[#5C3A21]">📋 قائمة الفواتير المسجلة مؤخراً:</h3>
+            <div class="overflow-x-auto border border-[#EFEAE2] rounded-xl bg-[#FDFBF7]">
+                <table class="w-full text-right text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-[#EFEAE2] text-[#5C3A21] border-b border-[#EFEAE2]">
+                            <th class="p-3">رقم الفاتورة</th>
+                            <th class="p-3">العميل</th>
+                            <th class="p-3">تاريخ الحفل</th>
+                            <th class="p-3">الإجمالي الكلي</th>
+                            <th class="p-3">المدفوع</th>
+                            <th class="p-3">المتبقي</th>
+                            <th class="p-3">الحالة</th>
+                            <th class="p-3 text-center">إجراءات سريع</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardTableBody" class="divide-y divide-[#EFEAE2] bg-white">
+                        <tr>
+                            <td colspan="8" class="p-6 text-center text-[#8C7662]">جاري تحميل الفواتير من السحاب... ⏳</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-        function updateInvoicePreview() {
-            try {
-                const name = document.getElementById('inputName').value;
-                const phone = document.getElementById('inputPhone').value;
-                const invId = document.getElementById('inputInvId').value;
-                const eventDate = document.getElementById('inputEventDate').value;
-                const desc = document.getElementById('inputDesc').value;
-                
-                const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-                const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-
-                const total = rate + insurance;
-                const remaining = total - paid;
-
-                document.getElementById('viewName').innerText = name || "-";
-                document.getElementById('viewPhone').innerText = phone || "-";
-                document.getElementById('viewInvId').innerText = invId || "توليد...";
-                document.getElementById('viewEventDate').innerText = eventDate || "-";
-                document.getElementById('viewDesc').innerText = desc || "-";
-                
-                document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
-                document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
-                document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
-                document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
-                document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
-                document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
-                document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
-            } catch (err) {
-                console.error("❌ خطأ في تحديث المعاينة الحية:", err);
-            }
-        }
-
-        async function saveInvoiceToSupabase() {
-            if (!supabaseClient) {
-                alert("🛑 خطأ: لا يمكن الحفظ لأن اتصال قاعدة البيانات مقطوع تماماً!");
-                return;
-            }
-
-            const btn = document.getElementById('btnSave');
-            btn.innerText = "جاري الحفظ... ⏳";
-            btn.disabled = true;
-
-            const name = document.getElementById('inputName').value.trim();
-            const phone = document.getElementById('inputPhone').value.trim();
-            const invId = document.getElementById('inputInvId').value;
-            const eventDate = document.getElementById('inputEventDate').value;
-            const desc = document.getElementById('inputDesc').value;
-            
-            if (!name || !phone) {
-                alert("⚠️ خطأ في البيانات: يرجى كتابة اسم العميل ورقم الهاتف أولاً قبل الحفظ.");
-                btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
-                btn.disabled = false;
-                return;
-            }
-
-            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-            const total = rate + insurance;
-            const remaining = total - paid;
-
-            try {
-                // 1. حفظ أو تحديث العميل
-                let { data: customer, error: custError } = await supabaseClient
-                    .from('customers')
-                    .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
-                    .select()
-                    .single();
-
-                if (custError) {
-                    console.error("❌ فشل جدول العملاء (Customers Error):", custError);
-                    throw new Error(`مشكلة في بيانات العميل: ${custError.message}`);
-                }
-
-                // 2. إدخال الفاتورة
-                const { data: invoice, error: invError } = await supabaseClient
-                    .from('invoices')
-                    .insert({
-                        customer_id: customer.id,
-                        invoice_number: invId,
-                        event_date: eventDate,
-                        insurance_amount: insurance,
-                        subtotal_amount: rate,
-                        total_amount: total,
-                        paid_amount: paid,
-                        status: remaining <= 0 ? 'paid' : 'unpaid'
-                    })
-                    .select()
-                    .single();
-
-                if (invError) {
-                    console.error("❌ فشل جدول الفواتير (Invoices Error):", invError);
-                    throw new Error(`مشكلة في جدول الفواتير: ${invError.message}`);
-                }
-
-                // 3. إدخال عناصر الفاتورة
-                const { error: itemError } = await supabaseClient
-                    .from('invoice_items')
-                    .insert({
-                        invoice_id: invoice.id,
-                        item_description: desc,
-                        rate: rate,
-                        quantity: 1,
-                        amount: rate
-                    });
-
-                if (itemError) {
-                    console.error("❌ فشل جدول العناصر (Invoice Items Error):", itemError);
-                    throw new Error(`مشكلة في تفاصيل عناصر الفاتورة: ${itemError.message}`);
-                }
-
-                alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} بنجاح في السحاب.`);
-                setAutomaticInvoiceId();
-                updateInvoicePreview();
-
-            } catch (err) {
-                console.error("❌ خطأ شامل في عملية الحفظ:", err);
-                alert(`🛑 حدث خطأ أثناء الحفظ:\n${err.message}\n\n(راجع لوحة Eruda لمزيد من التفاصيل الدقيقة)`);
-            } finally {
-                btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
-                btn.disabled = false;
-            }
-        }
-
-        // 🎯 استدعاء طباعة المتصفح الأصلية الآمنة والمحمية من التعليق
-        function generatePDF() {
-            try {
-                window.print();
-            } catch (err) {
-                console.error("❌ خطأ أثناء تشغيل الطباعة:", err);
-                alert(`🛑 فشل فتح نافذة الطباعة: ${err.message}`);
-            }
-        }
-
-        // 🎯 فتح محادثة الواتساب ومحمية من التعليق
-        function sendWhatsApp() {
-            try {
-                const phone = document.getElementById('inputPhone').value.trim();
-                const name = document.getElementById('inputName').value;
-                const invId = document.getElementById('inputInvId').value;
-                const eventDate = document.getElementById('inputEventDate').value;
-                const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-                const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-                const remaining = (rate + insurance - paid).toFixed(3);
-                
-                if (!phone) {
-                    alert("⚠️ تنبيه: يرجى إدخال رقم واتساب العميل أولاً.");
-                    return;
-                }
-
-                const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
-                
-                window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
-            } catch (err) {
-                console.error("❌ خطأ أثناء تشغيل توجيه الواتساب:", err);
-                alert(`🛑 فشل الانتقال لتطبيق واتساب: ${err.message}`);
-            }
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
