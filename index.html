@@ -56,6 +56,11 @@
                     <label class="block text-xs font-bold mb-1">وصف الحجز / الثيم:</label>
                     <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
                 </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1">شروط التأجير (يمكنك التعديل عليها):</label>
+                    <textarea id="inputTerms" rows="3" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-xs focus:outline-none focus:border-[#5C3A21] transition-all">• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد سلامة الأدوات.
+• يلتزم المستأجر بالمحافظة على جودة ونظافة الثيم.</textarea>
+                </div>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-xs font-bold mb-1">سعر الإيجار:</label>
@@ -131,10 +136,9 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-between items-start text-[11px] gap-6 mb-2">
-                    <div class="text-[#8C7662] max-w-xs space-y-1 order-2 sm:order-1">
+                    <div class="text-[#8C7662] max-w-xs space-y-1 order-2 sm:order-1 w-full sm:w-auto">
                         <p class="font-bold text-[#5C3A21]">📌 شروط التأجير:</p>
-                        <p>• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد سلامة الأدوات.</p>
-                        <p>• يلتزم المستأجر بالمحافظة على جودة ونظافة الثيم.</p>
+                        <div id="viewTerms" class="whitespace-pre-line leading-relaxed text-[#8C7662]">-</div>
                     </div>
                     <div class="w-full sm:w-52 space-y-1.5 text-[#5C3A21] border-t sm:border-t-0 border-[#EFEAE2] pt-3 sm:pt-0 order-1 sm:order-2 text-xs">
                         <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="viewSubtotal" class="font-bold">0.000 ر.ع</span></div>
@@ -195,6 +199,7 @@
             const invId = document.getElementById('inputInvId')?.value || "";
             const eventDate = document.getElementById('inputEventDate')?.value || "";
             const desc = document.getElementById('inputDesc')?.value || "";
+            const terms = document.getElementById('inputTerms')?.value || "";
             const rate = parseFloat(document.getElementById('inputRate')?.value) || 0;
             const insurance = parseFloat(document.getElementById('inputInsurance')?.value) || 0;
             const paid = parseFloat(document.getElementById('inputPaid')?.value) || 0;
@@ -206,6 +211,7 @@
             if(document.getElementById('viewInvId')) document.getElementById('viewInvId').innerText = invId || "توليد...";
             if(document.getElementById('viewEventDate')) document.getElementById('viewEventDate').innerText = eventDate || "-";
             if(document.getElementById('viewDesc')) document.getElementById('viewDesc').innerText = desc || "-";
+            if(document.getElementById('viewTerms')) document.getElementById('viewTerms').innerText = terms || "-";
             if(document.getElementById('viewRateTable')) document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
             if(document.getElementById('viewAmountTable')) document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
             if(document.getElementById('viewSubtotal')) document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
@@ -359,6 +365,9 @@
                 document.getElementById('viewTotal').innerText = inv.total_amount.toFixed(3) + " ر.ع";
                 document.getElementById('viewPaid').innerText = inv.paid_amount.toFixed(3) + " ر.ع";
                 document.getElementById('viewRemaining').innerText = rem.toFixed(3) + " ر.ع";
+                
+                // في وضع العميل، نعرض الشروط الافتراضية المكتوبة بالكود كبديل آمن
+                document.getElementById('viewTerms').innerText = "• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد سلامة الأدوات.\n• يلتزم المستأجر بالمحافظة على جودة ونظافة الثيم.";
             } catch (err) { console.error(err); }
         }
 
