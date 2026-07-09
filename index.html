@@ -312,18 +312,21 @@
         }
 
         function sendWhatsApp() {
-            const phone = document.getElementById('inputPhone').value;
-            const name = document.getElementById('inputName').value;
-            const invId = document.getElementById('inputInvId').value;
-            const eventDate = document.getElementById('inputEventDate').value;
-            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-            const remaining = (rate + insurance - paid).toFixed(3);
-            
-            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
-            
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+    const phone = document.getElementById('inputPhone').value;
+    const name = document.getElementById('inputName').value;
+    const invId = document.getElementById('inputInvId').value;
+    const eventDate = document.getElementById('inputEventDate').value;
+    const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+    const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+    const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+    const remaining = (rate + insurance - paid).toFixed(3);
+    
+    const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
+    
+    // 🎯 استخدام الرابط العميق المباشر (whatsapp://) وفي نفس التبويب لمنع حظر المتصفح
+    window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+
+
         }
     </script>
 </body>
