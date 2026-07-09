@@ -86,8 +86,9 @@
                         <h1 class="text-xl md:text-2xl font-bold text-[#5C3A21] mb-1">زُورَة</h1>
                         <p class="text-[10px] sm:text-xs text-[#8C7662]">لتأجير مستلزمات الحول حول والحفلات</p>
                     </div>
-                    <div class="w-16 h-16 sm:w-20 sm:w-20 rounded-full border border-[#5C3A21] flex items-center justify-center bg-[#FDFBF7]">
-                        <span class="text-[#5C3A21] font-bold text-xs sm:text-sm">زورة</span>
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-[#5C3A21] overflow-hidden flex items-center justify-center bg-[#FDFBF7]">
+                        <img src="logo.jpg" alt="شعار زورة" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                        <span class="text-[#5C3A21] font-bold text-xs sm:text-sm hidden">زورة</span>
                     </div>
                 </div>
 
@@ -124,7 +125,7 @@
                     </table>
                 </div>
 
-                <div class="flex flex-col sm:flex-row justify-between items-start text-[11px] gap-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start text-[11px] gap-6 mb-6">
                     <div class="text-[#8C7662] max-w-xs space-y-1 order-2 sm:order-1">
                         <p class="font-bold text-[#5C3A21]">📌 شروط التأجير:</p>
                         <p>• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد سلامة الأدوات.</p>
@@ -138,6 +139,20 @@
                         <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1.5 rounded border border-amber-200"><span>المتبقي المستحق:</span><span id="viewRemaining">0.000 ر.ع</span></div>
                     </div>
                 </div>
+
+                <div class="grid grid-cols-2 gap-4 border-t border-[#EFEAE2] pt-4 mt-6 text-center text-[11px] sm:text-xs text-[#5C3A21]">
+                    <div>
+                        <p class="font-bold text-[#5C3A21]">توقيع وإيجاز المتجر</p>
+                        <div class="h-8"></div>
+                        <p class="text-[#8C7662] font-mono">__________________</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-[#5C3A21]">توقيع العميل المستلم</p>
+                        <div class="h-8"></div>
+                        <p class="text-[#8C7662] font-mono">__________________</p>
+                    </div>
+                </div>
+
             </div>
             <button id="btnCustomerPrint" class="hidden w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold text-sm shadow justify-center items-center gap-2 mt-4 cursor-pointer">حفظ الفاتورة كـ PDF وعرضها للطباعة 📄</button>
         </div>
@@ -282,7 +297,6 @@
             } catch (err) { alert(err.message); } finally { btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; }
         }
 
-        // 📱 إرسال متوافق تماماً مع آيفون وأندرويد باستخدام بروتوكول الويب العالمي لـ WhatsApp API
         function sendWhatsAppWithPDF() {
             const phone = document.getElementById('inputPhone').value.trim();
             const name = document.getElementById('inputName').value;
@@ -293,7 +307,6 @@
             const url = `https://bugge6304-del.github.io/zorah-billing/?inv=${encodeURIComponent(invId)}`;
             const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${rem} ر.ع.\n\n📄 لمشاهدة الفاتورة الرسمية وتحميلها بصيغة PDF اضغط على الرابط التالي:\n${url}\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
             
-            // الفتح الآمن للرابط العالمي المعتمد في نظام iOS
             window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`, '_blank');
         }
 
