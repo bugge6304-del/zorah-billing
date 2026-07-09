@@ -130,7 +130,7 @@
                     </table>
                 </div>
 
-                <div class="flex flex-col sm:flex-row justify-between items-start text-[11px] gap-6 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start text-[11px] gap-6 mb-2">
                     <div class="text-[#8C7662] max-w-xs space-y-1 order-2 sm:order-1">
                         <p class="font-bold text-[#5C3A21]">📌 شروط التأجير:</p>
                         <p>• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد سلامة الأدوات.</p>
@@ -142,19 +142,6 @@
                         <div class="flex justify-between font-bold text-sm border-t border-[#EFEAE2] pt-1.5"><span>الإجمالي الكلي:</span><span id="viewTotal">0.000 ر.ع</span></div>
                         <div class="flex justify-between text-emerald-700 bg-emerald-50 p-1.5 rounded font-bold"><span>المدفوع مقدماً:</span><span id="viewPaid">0.000 ر.ع</span></div>
                         <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1.5 rounded border border-amber-200"><span>المتبقي المستحق:</span><span id="viewRemaining">0.000 ر.ع</span></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 border-t border-[#EFEAE2] pt-4 mt-6 text-center text-[11px] sm:text-xs text-[#5C3A21]">
-                    <div>
-                        <p class="font-bold text-[#5C3A21]">توقيع وإيجاز المتجر</p>
-                        <div class="h-8"></div>
-                        <p class="text-[#8C7662] font-mono">__________________</p>
-                    </div>
-                    <div>
-                        <p class="font-bold text-[#5C3A21]">توقيع العميل المستلم</p>
-                        <div class="h-8"></div>
-                        <p class="text-[#8C7662] font-mono">__________________</p>
                     </div>
                 </div>
 
@@ -251,7 +238,6 @@
                     totalPaid += inv.paid_amount; totalRemaining += rem; totalInsurance += inv.insurance_amount;
                     const badge = rem <= 0 ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">مدفوعة</span>` : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold text-[10px]">متبقي</span>`;
                     
-                    // تمرير معرّف قاعدة البيانات ورقم الفاتورة كـ نصوص آمنة
                     tableHtml += `
                     <tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]">
                         <td class="p-3 font-bold">${inv.invoice_number}</td>
@@ -276,13 +262,9 @@
             } catch (err) { console.error(err); }
         }
 
-        // ✏️ دالة التعديل الاحترافية والمحدثة لحل مشكلة عدم العثور على الفاتورة نهائياً
         function loadInvoiceToEdit(dbId, invoiceNumber) {
             console.log("محاولة تعديل الفاتورة:", dbId, invoiceNumber);
-            
-            // البحث المرن: عبر المعرف الفرعي أو رقم الفاتورة النصي لضمان التطابق التام
             const inv = localInvoicesCache.find(i => i.id == dbId || i.invoice_number == invoiceNumber);
-            
             if (!inv) {
                 alert("🛑 لم يتم العثور على الفاتورة المطلوبة في ذاكرة النظام المؤقتة! جاري تحديث اللوحة...");
                 fetchDashboardData(true);
@@ -298,7 +280,6 @@
                 }
             }
 
-            // تعبئة حقول الاستمارة بالبيانات المسترجعة فوراً
             document.getElementById('editInvoiceId').value = inv.id;
             document.getElementById('inputName').value = inv.customers?.name || "";
             document.getElementById('inputPhone').value = inv.customers?.phone || "";
@@ -309,13 +290,11 @@
             document.getElementById('inputInsurance').value = inv.insurance_amount;
             document.getElementById('inputPaid').value = inv.paid_amount;
 
-            // تغيير شكل زر الإرسال إلى وضع التحديث
             document.getElementById('formTitle').innerText = `تعديل الفاتورة (${inv.invoice_number})`;
             document.getElementById('btnSave').innerText = "تحديث الفاتورة الحالية 🔄";
             document.getElementById('btnSave').className = "w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 cursor-pointer mt-4 shadow-sm text-sm border-b-4 border-blue-800";
             document.getElementById('btnCancelEdit').classList.remove('hidden');
 
-            // صعود سلس لأعلى الصفحة لرؤية استمارة التعديل
             window.scrollTo({ top: 0, behavior: 'smooth' });
             updateInvoicePreview();
         }
