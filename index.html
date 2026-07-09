@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم متجر زورة - نظام الفواتير الشامل</title>
+    <title>نظام فواتير متجر زورة الشامل</title>
     
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
@@ -12,16 +12,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="p-4 md:p-8 space-y-8">
+<body class="p-4 md:p-8 space-y-8 bg-[#FDFBF7] text-[#5C3A21]">
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
+        <div id="controlPanel" class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
             <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
             </h2>
             
-            <form id="invoiceForm" class="space-y-4">
+            <form id="invoiceForm" class="space-y-4" onsubmit="return false;">
                 <div>
                     <label class="block text-xs font-bold mb-1">اسم العميل:</label>
                     <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
@@ -63,18 +63,18 @@
                 </div>
 
                 <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] transition cursor-pointer mt-4 shadow-sm flex justify-center items-center gap-2">
-                    <span>حفظ الفاتورة في قاعدة البيانات 💾</span>
+                    <span>حفظ الفاتورة في السحاب 💾</span>
                 </button>
             </form>
         </div>
 
-        <div class="lg:col-span-7 space-y-4">
-            <div class="flex justify-end gap-2">
+        <div id="previewPanel" class="lg:col-span-7 space-y-4">
+            <div id="actionButtons" class="flex justify-end gap-2">
                 <button id="btnPrint" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
                     تحميل PDF / طباعة 📄
                 </button>
                 <button id="btnWhatsApp" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#20ba5a] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
-                    إرسال واتساب 💬
+                    إرسال واتساب للعميل 💬
                 </button>
             </div>
 
@@ -85,19 +85,19 @@
                         <p class="text-xs text-[#8C7662]">لتأجير مستلزمات الحول حول والحفلات</p>
                     </div>
                     <div class="w-20 h-20 rounded-full border border-[#5C3A21] flex items-center justify-center bg-[#FDFBF7]">
-                        <span class="text-[#5C3A21] font-bold text-xs">زورة</span>
+                        <span class="text-[#5C3A21] font-bold text-sm">زورة</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-6 bg-[#FDFBF7] p-3 rounded-lg border border-[#EFEAE2] text-xs">
                     <div>
                         <h3 class="font-bold text-[#A39081] mb-1">صادرة إلى (BILL TO):</h3>
-                        <p class="font-bold text-sm text-[#5C3A21]" id="viewName">سعيد</p>
-                        <p class="text-[#8C7662]" id="viewPhone">96896379225</p>
+                        <p class="font-bold text-sm text-[#5C3A21]" id="viewName">جاري التحميل...</p>
+                        <p class="text-[#8C7662]" id="viewPhone">-</p>
                     </div>
                     <div class="text-left">
                         <h2 class="font-bold text-[#5C3A21] text-sm">فاتورة رقم: <span id="viewInvId">توليد...</span></h2>
-                        <p class="font-bold text-[#5C3A21] mt-1">تاريخ المناسبة: <span id="viewEventDate">2026-08-15</span></p>
+                        <p class="font-bold text-[#5C3A21] mt-1">تاريخ المناسبة: <span id="viewEventDate">-</span></p>
                     </div>
                 </div>
 
@@ -112,10 +112,10 @@
                     </thead>
                     <tbody class="divide-y divide-[#EFEAE2]">
                         <tr class="text-[#5C3A21]">
-                            <td class="p-3 font-medium" id="viewDesc">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</td>
-                            <td class="p-3 text-center" id="viewRateTable">210.000 ر.ع</td>
+                            <td class="p-3 font-medium" id="viewDesc">-</td>
+                            <td class="p-3 text-center" id="viewRateTable">0.000 ر.ع</td>
                             <td class="p-3 text-center">1</td>
-                            <td class="p-3 text-left font-bold" id="viewAmountTable">210.000 ر.ع</td>
+                            <td class="p-3 text-left font-bold" id="viewAmountTable">0.000 ر.ع</td>
                         </tr>
                     </tbody>
                 </table>
@@ -123,36 +123,41 @@
                 <div class="flex justify-between items-start text-[11px] gap-4">
                     <div class="text-[#8C7662] max-w-xs space-y-1">
                         <p class="font-bold text-[#5C3A21]">📌 شروط التأجير:</p>
-                        <p>• يتضمن الحجز تأميناً مسترداً يُرجع بعد فحص الأدوات.</p>
+                        <p>• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد فحص وسلامة الأدوات المستأجرة.</p>
+                        <p>• يلتزم المستأجر بالمحافظة على جودة ونظافة الثيم طوال فترة الحجز.</p>
                     </div>
                     <div class="w-48 space-y-1 text-[#5C3A21] border-t border-[#EFEAE2] pt-2">
                         <div class="flex justify-between">
                             <span>المجموع الفرعي:</span>
-                            <span id="viewSubtotal">210.000 ر.ع</span>
+                            <span id="viewSubtotal">0.000 ر.ع</span>
                         </div>
                         <div class="flex justify-between text-[#8C7662]">
                             <span>التأمين (مسترد):</span>
-                            <span id="viewInsurance">20.000 ر.ع</span>
+                            <span id="viewInsurance">0.000 ر.ع</span>
                         </div>
                         <div class="flex justify-between font-bold text-xs border-t border-[#EFEAE2] pt-1">
                             <span>الإجمالي الكلي:</span>
-                            <span id="viewTotal">230.000 ر.ع</span>
+                            <span id="viewTotal">0.000 ر.ع</span>
                         </div>
                         <div class="flex justify-between text-emerald-700 bg-emerald-50 p-1 rounded">
                             <span>المدفوع مقدماً:</span>
-                            <span id="viewPaid">50.000 ر.ع</span>
+                            <span id="viewPaid">0.000 ر.ع</span>
                         </div>
                         <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1 rounded border border-amber-200">
                             <span>المتبقي المستحق:</span>
-                            <span id="viewRemaining">180.000 ر.ع</span>
+                            <span id="viewRemaining">0.000 ر.ع</span>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <button id="btnCustomerPrint" class="hidden w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold text-sm shadow justify-center items-center gap-2 mt-4 cursor-pointer">
+               تحميل أو حفظ الفاتورة كـ PDF وعرضها للطباعة 📄
+            </button>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm space-y-6">
+    <div id="dashboardPanel" class="max-w-7xl mx-auto bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm space-y-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#EFEAE2] pb-4 gap-2">
             <div>
                 <h2 class="text-xl font-bold flex items-center gap-2">
@@ -160,7 +165,7 @@
                 </h2>
                 <p class="text-xs text-[#8C7662] mt-0.5">متابعة فواتير متجر زورة الحية من السحاب</p>
             </div>
-            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-[#4a2e1a] transition flex items-center gap-1">
+            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-[#4a2e1a] transition flex items-center gap-1 cursor-pointer">
                 تحديث البيانات 🔄
             </button>
         </div>
@@ -197,7 +202,7 @@
                             <th class="p-3">المدفوع</th>
                             <th class="p-3">المتبقي</th>
                             <th class="p-3">الحالة</th>
-                            <th class="p-3 text-center">إجراءات سريع</th>
+                            <th class="p-3 text-center">إجراء سريع</th>
                         </tr>
                     </thead>
                     <tbody id="dashboardTableBody" class="divide-y divide-[#EFEAE2] bg-white">
