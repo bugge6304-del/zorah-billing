@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم متجر زورة - نظام الفواتير</title>
-    <!-- أداة الفحص للأيباد والأندرويد -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
     
@@ -16,7 +15,6 @@
 
         /* 🖨️ تنسيق ذكي خاص بالطباعة وحفظ PDF لحل مشكلة التعليق تماماً */
         @media print {
-            /* إخفاء لوحة التحكم والأزرار وكل شيء خارج الفاتورة */
             body * {
                 visibility: hidden;
                 background-color: white !important;
@@ -24,7 +22,6 @@
             #invoice, #invoice * {
                 visibility: visible;
             }
-            /* جعل الفاتورة تأخذ الصفحة كاملة بدقة ممتازة وبدون حواف مشوهة */
             #invoice {
                 position: absolute;
                 left: 0;
@@ -42,7 +39,6 @@
 
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- القسم الأيمن: لوحة إدخال البيانات -->
         <div class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
             <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
@@ -95,7 +91,6 @@
             </form>
         </div>
 
-        <!-- القسم الأيسر: معاينة الفاتورة -->
         <div class="lg:col-span-7 space-y-4">
             <div class="flex justify-end gap-2">
                 <button onclick="generatePDF()" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
@@ -188,18 +183,22 @@
         try {
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch(e) {
-            console.error("خطأ في تشغيل مكتبة سوبابيز: ", e);
+            console.error("❌ خطأ في تشغيل مكتبة سوبابيز: ", e);
+            alert("⚠️ تنبيه: فشل الاتصال بمكتبة Supabase الأساسية. تحقق من رابط الاتصال.");
         }
 
-        // دالة توليد الأرقام تلقائياً لمنع التكرار نهائياً
         function setAutomaticInvoiceId() {
-            const now = new Date();
-            const year = now.getFullYear().toString().slice(-2); 
-            const timestamp = now.getTime().toString().slice(-6); 
-            const autoId = `INV-${year}${timestamp}`;
-            
-            document.getElementById('inputInvId').value = autoId;
-            document.getElementById('viewInvId').innerText = autoId;
+            try {
+                const now = new Date();
+                const year = now.getFullYear().toString().slice(-2); 
+                const timestamp = now.getTime().toString().slice(-6); 
+                const autoId = `INV-${year}${timestamp}`;
+                
+                document.getElementById('inputInvId').value = autoId;
+                document.getElementById('viewInvId').innerText = autoId;
+            } catch (err) {
+                console.error("❌ خطأ أثناء توليد رقم الفاتورة:", err);
+            }
         }
 
         window.onload = function() {
@@ -208,37 +207,41 @@
         };
 
         function updateInvoicePreview() {
-            const name = document.getElementById('inputName').value;
-            const phone = document.getElementById('inputPhone').value;
-            const invId = document.getElementById('inputInvId').value;
-            const eventDate = document.getElementById('inputEventDate').value;
-            const desc = document.getElementById('inputDesc').value;
-            
-            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+            try {
+                const name = document.getElementById('inputName').value;
+                const phone = document.getElementById('inputPhone').value;
+                const invId = document.getElementById('inputInvId').value;
+                const eventDate = document.getElementById('inputEventDate').value;
+                const desc = document.getElementById('inputDesc').value;
+                
+                const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+                const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
 
-            const total = rate + insurance;
-            const remaining = total - paid;
+                const total = rate + insurance;
+                const remaining = total - paid;
 
-            document.getElementById('viewName').innerText = name;
-            document.getElementById('viewPhone').innerText = phone;
-            document.getElementById('viewInvId').innerText = invId;
-            document.getElementById('viewEventDate').innerText = eventDate;
-            document.getElementById('viewDesc').innerText = desc;
-            
-            document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
-            document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
-            document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
-            document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
-            document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
-            document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
-            document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
+                document.getElementById('viewName').innerText = name || "-";
+                document.getElementById('viewPhone').innerText = phone || "-";
+                document.getElementById('viewInvId').innerText = invId || "توليد...";
+                document.getElementById('viewEventDate').innerText = eventDate || "-";
+                document.getElementById('viewDesc').innerText = desc || "-";
+                
+                document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
+                document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
+                document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
+                document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
+                document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
+                document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
+                document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
+            } catch (err) {
+                console.error("❌ خطأ في تحديث المعاينة الحية:", err);
+            }
         }
 
         async function saveInvoiceToSupabase() {
             if (!supabaseClient) {
-                alert("مكتبة Supabase لم تتحمل بشكل صحيح.");
+                alert("🛑 خطأ: لا يمكن الحفظ لأن اتصال قاعدة البيانات مقطوع تماماً!");
                 return;
             }
 
@@ -246,12 +249,19 @@
             btn.innerText = "جاري الحفظ... ⏳";
             btn.disabled = true;
 
-            const name = document.getElementById('inputName').value;
-            const phone = document.getElementById('inputPhone').value;
+            const name = document.getElementById('inputName').value.trim();
+            const phone = document.getElementById('inputPhone').value.trim();
             const invId = document.getElementById('inputInvId').value;
             const eventDate = document.getElementById('inputEventDate').value;
             const desc = document.getElementById('inputDesc').value;
             
+            if (!name || !phone) {
+                alert("⚠️ خطأ في البيانات: يرجى كتابة اسم العميل ورقم الهاتف أولاً قبل الحفظ.");
+                btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
+                btn.disabled = false;
+                return;
+            }
+
             const rate = parseFloat(document.getElementById('inputRate').value) || 0;
             const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
             const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
@@ -259,14 +269,19 @@
             const remaining = total - paid;
 
             try {
+                // 1. حفظ أو تحديث العميل
                 let { data: customer, error: custError } = await supabaseClient
                     .from('customers')
                     .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
                     .select()
                     .single();
 
-                if (custError) throw custError;
+                if (custError) {
+                    console.error("❌ فشل جدول العملاء (Customers Error):", custError);
+                    throw new Error(`مشكلة في بيانات العميل: ${custError.message}`);
+                }
 
+                // 2. إدخال الفاتورة
                 const { data: invoice, error: invError } = await supabaseClient
                     .from('invoices')
                     .insert({
@@ -282,8 +297,12 @@
                     .select()
                     .single();
 
-                if (invError) throw invError;
+                if (invError) {
+                    console.error("❌ فشل جدول الفواتير (Invoices Error):", invError);
+                    throw new Error(`مشكلة في جدول الفواتير: ${invError.message}`);
+                }
 
+                // 3. إدخال عناصر الفاتورة
                 const { error: itemError } = await supabaseClient
                     .from('invoice_items')
                     .insert({
@@ -294,40 +313,58 @@
                         amount: rate
                     });
 
-                if (itemError) throw itemError;
+                if (itemError) {
+                    console.error("❌ فشل جدول العناصر (Invoice Items Error):", itemError);
+                    throw new Error(`مشكلة في تفاصيل عناصر الفاتورة: ${itemError.message}`);
+                }
 
                 alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} بنجاح في السحاب.`);
                 setAutomaticInvoiceId();
                 updateInvoicePreview();
 
             } catch (err) {
-                console.error("خطأ أثناء إرسال البيانات لسوبابيز:", err);
-                alert("حدث خطأ أثناء الحفظ: " + err.message);
+                console.error("❌ خطأ شامل في عملية الحفظ:", err);
+                alert(`🛑 حدث خطأ أثناء الحفظ:\n${err.message}\n\n(راجع لوحة Eruda لمزيد من التفاصيل الدقيقة)`);
             } finally {
                 btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
                 btn.disabled = false;
             }
         }
 
-        // 🎯 استدعاء طباعة المتصفح الأصلية لحل مشكلة التعليق وحفظ كـ PDF مباشرة
+        // 🎯 استدعاء طباعة المتصفح الأصلية الآمنة والمحمية من التعليق
         function generatePDF() {
-            window.print();
+            try {
+                window.print();
+            } catch (err) {
+                console.error("❌ خطأ أثناء تشغيل الطباعة:", err);
+                alert(`🛑 فشل فتح نافذة الطباعة: ${err.message}`);
+            }
         }
 
-        // 🎯 فتح محادثة الواتساب العميقة والمباشرة لتفادي حظر النوافذ
+        // 🎯 فتح محادثة الواتساب ومحمية من التعليق
         function sendWhatsApp() {
-            const phone = document.getElementById('inputPhone').value;
-            const name = document.getElementById('inputName').value;
-            const invId = document.getElementById('inputInvId').value;
-            const eventDate = document.getElementById('inputEventDate').value;
-            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-            const remaining = (rate + insurance - paid).toFixed(3);
-            
-            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
-            
-            window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+            try {
+                const phone = document.getElementById('inputPhone').value.trim();
+                const name = document.getElementById('inputName').value;
+                const invId = document.getElementById('inputInvId').value;
+                const eventDate = document.getElementById('inputEventDate').value;
+                const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+                const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+                const remaining = (rate + insurance - paid).toFixed(3);
+                
+                if (!phone) {
+                    alert("⚠️ تنبيه: يرجى إدخال رقم واتساب العميل أولاً.");
+                    return;
+                }
+
+                const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
+                
+                window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+            } catch (err) {
+                console.error("❌ خطأ أثناء تشغيل توجيه الواتساب:", err);
+                alert(`🛑 فشل الانتقال لتطبيق واتساب: ${err.message}`);
+            }
         }
     </script>
 </body>
