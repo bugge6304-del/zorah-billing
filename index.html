@@ -192,7 +192,6 @@
         const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
         let supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-        // لتخزين البيانات محلياً لتسهيل التعديل السريع بدون استعلامات إضافية
         let localInvoicesCache = [];
 
         function setAutomaticInvoiceId() {
@@ -242,7 +241,7 @@
                     tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير مسجلة 📥</td></tr>`; return;
                 }
                 
-                localInvoicesCache = invoices; // تخزين مؤقت
+                localInvoicesCache = invoices; 
                 let totalPaid = 0, totalRemaining = 0, totalInsurance = 0, tableHtml = "";
                 
                 invoices.forEach(inv => {
@@ -276,22 +275,31 @@
             } catch (err) { console.error(err); }
         }
 
-        // ✏️ تحضير الفاتورة وإدراج بياناتها داخل استمارة الإدخال لتعديلها
+        // ✏️ دالة التعديل المصححة تماماً للتعامل مع هيكل المصفوفة أو الكائن المفرد
         function loadInvoiceToEdit(dbId) {
             const inv = localInvoicesCache.find(i => i.id === dbId);
             if (!inv) return;
+
+            // حل مشكلة استخراج محتوى العنصر التابع بمرونة تامة
+            let itemDescription = "";
+            if (inv.invoice_items) {
+                if (Array.isArray(inv.invoice_items)) {
+                    itemDescription = inv.invoice_items[0]?.item_description || "";
+                } else {
+                    itemDescription = inv.invoice_items.item_description || "";
+                }
+            }
 
             document.getElementById('editInvoiceId').value = inv.id;
             document.getElementById('inputName').value = inv.customers?.name || "";
             document.getElementById('inputPhone').value = inv.customers?.phone || "";
             document.getElementById('inputInvId').value = inv.invoice_number;
             document.getElementById('inputEventDate').value = inv.event_date || "";
-            document.getElementById('inputDesc').value = inv.invoice_items?.[0]?.item_description || "";
+            document.getElementById('inputDesc').value = itemDescription;
             document.getElementById('inputRate').value = inv.subtotal_amount;
             document.getElementById('inputInsurance').value = inv.insurance_amount;
             document.getElementById('inputPaid').value = inv.paid_amount;
 
-            // تغيير هوية الأزرار لتتناسب مع وضع التعديل
             document.getElementById('formTitle').innerText = `تعديل الفاتورة (${inv.invoice_number})`;
             document.getElementById('btnSave').innerText = "تحديث الفاتورة الحالية 🔄";
             document.getElementById('btnSave').className = "w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 cursor-pointer mt-4 shadow-sm text-sm border-b-4 border-blue-800";
@@ -301,7 +309,6 @@
             updateInvoicePreview();
         }
 
-        // إلغاء وضع التعديل والعودة لوضع الإدخال الطبيعي
         function cancelEditMode() {
             document.getElementById('editInvoiceId').value = "";
             document.getElementById('formTitle').innerText = "إنشاء فاتورة حجز جديدة";
@@ -312,23 +319,18 @@
             updateInvoicePreview();
         }
 
-        // 🗑️ حذف الفاتورة ومحتوياتها نهائياً من قاعدة البيانات السحابية
         async function deleteInvoiceFromDatabase(dbId, invNum) {
             if (!supabaseClient) return;
             if (!confirm(`⚠️ هل أنت متأكد تماماً من رغبتك في حذف الفاتورة رقم (${invNum}) نهائياً من السحاب وقاعدة البيانات؟`)) return;
 
             try {
-                // 1. حذف العناصر التابعة أولاً من جدول invoice_items لمنع مشاكل القيود الهيكلية
                 await supabaseClient.from('invoice_items').delete().eq('invoice_id', dbId);
-                // 2. حذف الفاتورة الرئيسية من جدول invoices
                 const { error } = await supabaseClient.from('invoices').delete().eq('id', dbId);
                 
                 if (error) throw error;
-                alert(`🗑️ تم حذف الفاتورة رقم ${invNum} بنجاح من النظام.`);
+                alert(`🗑️ تم حذف الفاتورة رقم ${invNum} بنجاح.`);
                 
-                // إلغاء التعديل إذا كانت الفاتورة المحذوفة هي التي يجري تعديلها حالياً
                 if (document.getElementById('editInvoiceId').value === dbId) cancelEditMode();
-                
                 fetchDashboardData(true);
             } catch (err) { alert(`🛑 فشل الحذف: ${err.message}`); }
         }
@@ -342,13 +344,26 @@
                 if (!invoices || invoices.length === 0) { alert("🛑 عذراً، لم يتم العثور على الفاتورة في السحاب."); return; }
                 const inv = invoices[0];
                 const rem = inv.total_amount - inv.paid_amount;
+                
+                let itemDesc = "";
+                let itemRate = inv.subtotal_amount;
+                if (inv.invoice_items) {
+                    if (Array.isArray(inv.invoice_items)) {
+                        itemDesc = inv.invoice_items[0]?.item_description || "تأجير مستلزمات";
+                        itemRate = inv.invoice_items[0]?.rate || inv.subtotal_amount;
+                    } else {
+                        itemDesc = inv.invoice_items.item_description || "تأجير مستلزمات";
+                        itemRate = inv.invoice_items.rate || inv.subtotal_amount;
+                    }
+                }
+
                 document.getElementById('viewName').innerText = inv.customers ? inv.customers.name : "-";
                 document.getElementById('viewPhone').innerText = inv.customers ? inv.customers.phone : "-";
                 document.getElementById('viewInvId').innerText = inv.invoice_number;
                 document.getElementById('viewEventDate').innerText = inv.event_date || "-";
-                document.getElementById('viewDesc').innerText = inv.invoice_items?.[0]?.item_description || "تأجير مستلزمات";
-                document.getElementById('viewRateTable').innerText = (inv.invoice_items?.[0]?.rate || inv.subtotal_amount).toFixed(3) + " ر.ع";
-                document.getElementById('viewAmountTable').innerText = (inv.invoice_items?.[0]?.rate || inv.subtotal_amount).toFixed(3) + " ر.ع";
+                document.getElementById('viewDesc').innerText = itemDesc;
+                document.getElementById('viewRateTable').innerText = itemRate.toFixed(3) + " ر.ع";
+                document.getElementById('viewAmountTable').innerText = itemRate.toFixed(3) + " ر.ع";
                 document.getElementById('viewSubtotal').innerText = inv.subtotal_amount.toFixed(3) + " ر.ع";
                 document.getElementById('viewInsurance').innerText = inv.insurance_amount.toFixed(3) + " ر.ع";
                 document.getElementById('viewTotal').innerText = inv.total_amount.toFixed(3) + " ر.ع";
@@ -357,7 +372,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // دالة الحفظ أو التعديل المشتركة حسب حالة التطبيق الحالية
         async function handleFormSubmit() {
             if (!supabaseClient) return;
             
@@ -388,11 +402,9 @@
             const statusStr = (total - paid <= 0) ? 'paid' : 'unpaid';
 
             try {
-                // إدخال أو تحديث العميل بناء على رقم الهاتف الفريد
                 let { data: cust } = await supabaseClient.from('customers').upsert({ name, phone }, { onConflict: 'phone' }).select().single();
                 
                 if (isEditMode) {
-                    // فرع تحديث الفاتورة الحالية (UPDATE)
                     await supabaseClient.from('invoices').update({
                         customer_id: cust.id,
                         event_date: eventDate,
@@ -403,9 +415,12 @@
                         status: statusStr
                     }).eq('id', editId);
 
-                    // تحديث عناصر الفاتورة التابعة
                     const currentInvObj = localInvoicesCache.find(i => i.id === editId);
-                    const itemId = currentInvObj?.invoice_items?.[0]?.id;
+                    let itemId = null;
+                    if (currentInvObj && currentInvObj.invoice_items) {
+                        itemId = Array.isArray(currentInvObj.invoice_items) ? currentInvObj.invoice_items[0]?.id : currentInvObj.invoice_items.id;
+                    }
+
                     if (itemId) {
                         await supabaseClient.from('invoice_items').update({ item_description: desc, rate, amount: rate }).eq('id', itemId);
                     } else {
@@ -415,7 +430,6 @@
                     alert("🎉 تم تحديث بيانات الفاتورة بنجاح في السحاب!");
                     cancelEditMode();
                 } else {
-                    // فرع إنشاء فاتورة جديدة (INSERT)
                     let { data: inv } = await supabaseClient.from('invoices').insert({ customer_id: cust.id, invoice_number: invId, event_date: eventDate, insurance_amount: insurance, subtotal_amount: rate, total_amount: total, paid_amount: paid, status: statusStr }).select().single();
                     await supabaseClient.from('invoice_items').insert({ invoice_id: inv.id, item_description: desc, rate, quantity: 1, amount: rate });
                     
