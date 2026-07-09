@@ -7,10 +7,21 @@
     
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght=300;400;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+        
+        /* تنسيق الطباعة وحفظ PDF النظيف للعميل */
+        @media print {
+            body { background-color: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
+            #controlPanel, #actionButtons, #dashboardPanel, #btnCustomerPrint, .eruda-container { display: none !important; visibility: hidden !important; }
+            #previewPanel { width: 100% !important; max-width: 100% !important; }
+            #invoice { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+        }
+    </style>
 </head>
 <body class="p-4 md:p-8 space-y-8 bg-[#FDFBF7] text-[#5C3A21]">
 
@@ -20,20 +31,18 @@
             <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
             </h2>
-            
             <form id="invoiceForm" class="space-y-4" onsubmit="return false;">
                 <div>
                     <label class="block text-xs font-bold mb-1">اسم العميل:</label>
                     <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-1">رقم الواتساب (مع رمز الدولة وبدون +):</label>
+                    <label class="block text-xs font-bold mb-1">رقم الواتساب (مع رمز الدولة بدون +):</label>
                     <input type="text" id="inputPhone" value="96896379225" placeholder="968xxxxxxx" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                 </div>
-
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-bold mb-1">رقم الفاتورة (تلقائي ⚡):</label>
+                        <label class="block text-xs font-bold mb-1">رقم الفاتورة:</label>
                         <input type="text" id="inputInvId" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#EFEAE2] text-[#8C7662] font-bold focus:outline-none" readonly>
                     </div>
                     <div>
@@ -41,19 +50,17 @@
                         <input type="date" id="inputEventDate" value="2026-08-15" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold mb-1">وصف الحجز / الثيم:</label>
                     <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
                 </div>
-
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-xs font-bold mb-1">سعر الإيجار:</label>
                         <input type="number" id="inputRate" value="210" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold mb-1">التأمين المسترد:</label>
+                        <label class="block text-xs font-bold mb-1">التأمين:</label>
                         <input type="number" id="inputInsurance" value="20" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                     </div>
                     <div>
@@ -61,21 +68,16 @@
                         <input type="number" id="inputPaid" value="50" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
                     </div>
                 </div>
-
-                <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] transition cursor-pointer mt-4 shadow-sm flex justify-center items-center gap-2">
-                    <span>حفظ الفاتورة في السحاب 💾</span>
+                <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] cursor-pointer mt-4 shadow-sm">
+                    حفظ الفاتورة في السحاب 💾
                 </button>
             </form>
         </div>
 
         <div id="previewPanel" class="lg:col-span-7 space-y-4">
             <div id="actionButtons" class="flex justify-end gap-2">
-                <button id="btnPrint" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#75614f] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
-                    تحميل PDF / طباعة 📄
-                </button>
-                <button id="btnWhatsApp" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold hover:bg-[#20ba5a] transition cursor-pointer flex items-center gap-1 text-sm shadow-sm">
-                    إرسال واتساب للعميل 💬
-                </button>
+                <button id="btnPrint" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm cursor-pointer">طباعة / تحميل PDF 📄</button>
+                <button id="btnWhatsApp" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm cursor-pointer">إرسال واتساب للعميل 💬</button>
             </div>
 
             <div id="invoice" class="bg-white p-6 md:p-8 rounded-xl border border-[#EFEAE2] shadow-sm">
@@ -92,7 +94,7 @@
                 <div class="grid grid-cols-2 gap-4 mb-6 bg-[#FDFBF7] p-3 rounded-lg border border-[#EFEAE2] text-xs">
                     <div>
                         <h3 class="font-bold text-[#A39081] mb-1">صادرة إلى (BILL TO):</h3>
-                        <p class="font-bold text-sm text-[#5C3A21]" id="viewName">جاري التحميل...</p>
+                        <p class="font-bold text-sm text-[#5C3A21]" id="viewName">جاري جلب البيانات...</p>
                         <p class="text-[#8C7662]" id="viewPhone">-</p>
                     </div>
                     <div class="text-left">
@@ -123,98 +125,126 @@
                 <div class="flex justify-between items-start text-[11px] gap-4">
                     <div class="text-[#8C7662] max-w-xs space-y-1">
                         <p class="font-bold text-[#5C3A21]">📌 شروط التأجير:</p>
-                        <p>• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد فحص وسلامة الأدوات المستأجرة.</p>
-                        <p>• يلتزم المستأجر بالمحافظة على جودة ونظافة الثيم طوال فترة الحجز.</p>
+                        <p>• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد سلامة الأدوات.</p>
+                        <p>• يلتزم المستأجر بالمحافظة على جودة ونظافة الثيم.</p>
                     </div>
                     <div class="w-48 space-y-1 text-[#5C3A21] border-t border-[#EFEAE2] pt-2">
-                        <div class="flex justify-between">
-                            <span>المجموع الفرعي:</span>
-                            <span id="viewSubtotal">0.000 ر.ع</span>
-                        </div>
-                        <div class="flex justify-between text-[#8C7662]">
-                            <span>التأمين (مسترد):</span>
-                            <span id="viewInsurance">0.000 ر.ع</span>
-                        </div>
-                        <div class="flex justify-between font-bold text-xs border-t border-[#EFEAE2] pt-1">
-                            <span>الإجمالي الكلي:</span>
-                            <span id="viewTotal">0.000 ر.ع</span>
-                        </div>
-                        <div class="flex justify-between text-emerald-700 bg-emerald-50 p-1 rounded">
-                            <span>المدفوع مقدماً:</span>
-                            <span id="viewPaid">0.000 ر.ع</span>
-                        </div>
-                        <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1 rounded border border-amber-200">
-                            <span>المتبقي المستحق:</span>
-                            <span id="viewRemaining">0.000 ر.ع</span>
-                        </div>
+                        <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="viewSubtotal">0.000 ر.ع</span></div>
+                        <div class="flex justify-between text-[#8C7662]"><span>التأمين:</span><span id="viewInsurance">0.000 ر.ع</span></div>
+                        <div class="flex justify-between font-bold text-xs border-t border-[#EFEAE2] pt-1"><span>الإجمالي الكلي:</span><span id="viewTotal">0.000 ر.ع</span></div>
+                        <div class="flex justify-between text-emerald-700 bg-emerald-50 p-1 rounded"><span>المدفوع مقدماً:</span><span id="viewPaid">0.000 ر.ع</span></div>
+                        <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1 rounded border border-amber-200"><span>المتبقي المستحق:</span><span id="viewRemaining">0.000 ر.ع</span></div>
                     </div>
                 </div>
             </div>
-            
-            <button id="btnCustomerPrint" class="hidden w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold text-sm shadow justify-center items-center gap-2 mt-4 cursor-pointer">
-               تحميل أو حفظ الفاتورة كـ PDF وعرضها للطباعة 📄
-            </button>
+            <button id="btnCustomerPrint" class="hidden w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold text-sm shadow justify-center items-center gap-2 mt-4 cursor-pointer">حفظ الفاتورة كـ PDF وعرضها للطباعة 📄</button>
         </div>
     </div>
 
     <div id="dashboardPanel" class="max-w-7xl mx-auto bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm space-y-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#EFEAE2] pb-4 gap-2">
+        <div class="flex justify-between items-center border-b border-[#EFEAE2] pb-4">
             <div>
-                <h2 class="text-xl font-bold flex items-center gap-2">
-                    <span>📊</span> لوحة تحكم وإحصائيات المتجر
-                </h2>
-                <p class="text-xs text-[#8C7662] mt-0.5">متابعة فواتير متجر زورة الحية من السحاب</p>
+                <h2 class="text-xl font-bold flex items-center gap-2"><span>📊</span> لوحة تحكم وإحصائيات المتجر</h2>
             </div>
-            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-[#4a2e1a] transition flex items-center gap-1 cursor-pointer">
-                تحديث البيانات 🔄
-            </button>
+            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-4 py-2 rounded-lg font-bold text-xs cursor-pointer">تحديث البيانات 🔄</button>
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-[#FDFBF7] p-4 rounded-xl border border-[#EFEAE2]">
-                <p class="text-xs font-bold text-[#8C7662]">إجمالي الفواتير</p>
-                <p id="statTotalInvoices" class="text-2xl font-bold mt-1 text-[#5C3A21]">0</p>
-            </div>
-            <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-                <p class="text-xs font-bold text-emerald-800">إجمالي المبالغ المحصلة</p>
-                <p id="statTotalPaid" class="text-2xl font-bold mt-1 text-emerald-700">0.000 ر.ع</p>
-            </div>
-            <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
-                <p class="text-xs font-bold text-amber-900">المبالغ المعلقة (المتبقية)</p>
-                <p id="statTotalRemaining" class="text-2xl font-bold mt-1 text-amber-700">0.000 ر.ع</p>
-            </div>
-            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                <p class="text-xs font-bold text-blue-900">إجمالي مبالغ التأمين</p>
-                <p id="statTotalInsurance" class="text-2xl font-bold mt-1 text-blue-700">0.000 ر.ع</p>
-            </div>
+            <div class="bg-[#FDFBF7] p-4 rounded-xl border border-[#EFEAE2]"><p class="text-xs font-bold text-[#8C7662]">إجمالي الفواتير</p><p id="statTotalInvoices" class="text-2xl font-bold text-[#5C3A21]">0</p></div>
+            <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100"><p class="text-xs font-bold text-emerald-800">إجمالي المحصل</p><p id="statTotalPaid" class="text-2xl font-bold text-emerald-700">0.000 ر.ع</p></div>
+            <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100"><p class="text-xs font-bold text-amber-900">المبالغ المتبقية</p><p id="statTotalRemaining" class="text-2xl font-bold text-amber-700">0.000 ر.ع</p></div>
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100"><p class="text-xs font-bold text-blue-900">إجمالي التأمين</p><p id="statTotalInsurance" class="text-2xl font-bold text-blue-700">0.000 ر.ع</p></div>
         </div>
-
-        <div class="space-y-2">
-            <h3 class="text-sm font-bold text-[#5C3A21]">📋 قائمة الفواتير المسجلة مؤخراً:</h3>
-            <div class="overflow-x-auto border border-[#EFEAE2] rounded-xl bg-[#FDFBF7]">
-                <table class="w-full text-right text-xs border-collapse">
-                    <thead>
-                        <tr class="bg-[#EFEAE2] text-[#5C3A21] border-b border-[#EFEAE2]">
-                            <th class="p-3">رقم الفاتورة</th>
-                            <th class="p-3">العميل</th>
-                            <th class="p-3">تاريخ الحفل</th>
-                            <th class="p-3">الإجمالي الكلي</th>
-                            <th class="p-3">المدفوع</th>
-                            <th class="p-3">المتبقي</th>
-                            <th class="p-3">الحالة</th>
-                            <th class="p-3 text-center">إجراء سريع</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dashboardTableBody" class="divide-y divide-[#EFEAE2] bg-white">
-                        <tr>
-                            <td colspan="8" class="p-6 text-center text-[#8C7662]">جاري تحميل الفواتير من السحاب... ⏳</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto border border-[#EFEAE2] rounded-xl bg-[#FDFBF7]">
+            <table class="w-full text-right text-xs border-collapse">
+                <thead>
+                    <tr class="bg-[#EFEAE2] text-[#5C3A21] border-b"><th class="p-3">رقم الفاتورة</th><th class="p-3">العميل</th><th class="p-3">تاريخ الحفل</th><th class="p-3">الإجمالي</th><th class="p-3">المدفوع</th><th class="p-3">المتبقي</th><th class="p-3">الحالة</th><th class="p-3 text-center">إجراء</th></tr>
+                </thead>
+                <tbody id="dashboardTableBody" class="divide-y divide-[#EFEAE2] bg-white">
+                    <tr><td colspan="8" class="p-6 text-center text-[#8C7662]">جاري التحميل... ⏳</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <script src="app.js"></script>
-</body>
-</html>
+    <script>
+        const SUPABASE_URL = "https://nbgqoggilutczmzqxydp.supabase.co"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
+        let supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        function setAutomaticInvoiceId() {
+            const now = new Date();
+            const autoId = `INV-${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}-${now.getTime().toString().slice(-4)}`;
+            if(document.getElementById('inputInvId')) document.getElementById('inputInvId').value = autoId;
+            if(document.getElementById('viewInvId')) document.getElementById('viewInvId').innerText = autoId;
+        }
+
+        function updateInvoicePreview() {
+            if (new URLSearchParams(window.location.search).has('inv')) return;
+            const name = document.getElementById('inputName')?.value || "";
+            const phone = document.getElementById('inputPhone')?.value || "";
+            const invId = document.getElementById('inputInvId')?.value || "";
+            const eventDate = document.getElementById('inputEventDate')?.value || "";
+            const desc = document.getElementById('inputDesc')?.value || "";
+            const rate = parseFloat(document.getElementById('inputRate')?.value) || 0;
+            const insurance = parseFloat(document.getElementById('inputInsurance')?.value) || 0;
+            const paid = parseFloat(document.getElementById('inputPaid')?.value) || 0;
+            const total = rate + insurance;
+            const remaining = total - paid;
+
+            if(document.getElementById('viewName')) document.getElementById('viewName').innerText = name || "-";
+            if(document.getElementById('viewPhone')) document.getElementById('viewPhone').innerText = phone || "-";
+            if(document.getElementById('viewInvId')) document.getElementById('viewInvId').innerText = invId || "توليد...";
+            if(document.getElementById('viewEventDate')) document.getElementById('viewEventDate').innerText = eventDate || "-";
+            if(document.getElementById('viewDesc')) document.getElementById('viewDesc').innerText = desc || "-";
+            if(document.getElementById('viewRateTable')) document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
+            if(document.getElementById('viewAmountTable')) document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
+            if(document.getElementById('viewSubtotal')) document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
+            if(document.getElementById('viewInsurance')) document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
+            if(document.getElementById('viewTotal')) document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
+            if(document.getElementById('viewPaid')) document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
+            if(document.getElementById('viewRemaining')) document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
+        }
+
+        async function fetchDashboardData() {
+            if (!supabaseClient || new URLSearchParams(window.location.search).has('inv')) return;
+            try {
+                let { data: invoices, error } = await supabaseClient.from('invoices').select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, status, customers ( name, phone )').order('created_at', { ascending: false });
+                if (error) throw error;
+                const tbody = document.getElementById('dashboardTableBody');
+                if (!tbody) return;
+                if (!invoices || invoices.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير 📥</td></tr>`; return;
+                }
+                let totalPaid = 0, totalRemaining = 0, totalInsurance = 0, tableHtml = "";
+                invoices.forEach(inv => {
+                    const name = inv.customers ? inv.customers.name : "-";
+                    const phone = inv.customers ? inv.customers.phone : "";
+                    const rem = inv.total_amount - inv.paid_amount;
+                    totalPaid += inv.paid_amount; totalRemaining += rem; totalInsurance += inv.insurance_amount;
+                    const badge = rem <= 0 ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-[10px]">مدفوعة</span>` : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px]">متبقي</span>`;
+                    tableHtml += `<tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]"><td class="p-3 font-bold">${inv.invoice_number}</td><td class="p-3">${name}</td><td class="p-3 font-mono">${inv.event_date || "-"}</td><td class="p-3 font-bold">${inv.total_amount.toFixed(3)}</td><td class="p-3 text-emerald-700">${inv.paid_amount.toFixed(3)}</td><td class="p-3 text-amber-800 font-bold">${rem.toFixed(3)}</td><td class="p-3">${badge}</td><td class="p-3 text-center"><button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] cursor-pointer">واتساب 💬</button></td></tr>`;
+                });
+                document.getElementById('statTotalInvoices').innerText = invoices.length;
+                document.getElementById('statTotalPaid').innerText = totalPaid.toFixed(3) + " ر.ع";
+                document.getElementById('statTotalRemaining').innerText = totalRemainingSum = totalRemaining.toFixed(3) + " ر.ع";
+                document.getElementById('statTotalInsurance').innerText = totalInsurance.toFixed(3) + " ر.ع";
+                tbody.innerHTML = tableHtml;
+            } catch (err) { console.error(err); }
+        }
+
+        // 🛠️ التحديث الجوهري لإصلاح خطأ "الفاتورة غير موجودة" وحل مشكلة الرموز والشرطات
+        async function fetchSingleInvoiceForCustomer(invoiceNumber) {
+            if (!supabaseClient) return;
+            try {
+                // فك ترميز النص وتنظيفه لضمان المطابقة الكاملة مع رقم السحاب
+                const cleanInvoiceNumber = decodeURIComponent(invoiceNumber).trim();
+
+                let { data: invoices, error } = await supabaseClient
+                    .from('invoices')
+                    .select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, customers ( name, phone ), invoice_items ( item_description, rate )')
+                    .eq('invoice_number', cleanInvoiceNumber);
+
+                if (error) throw error;
+
+                if (!invoices || invoices.length === 0) { 
+                    alert("🛑 عذراً، لم يتم العثور على الفاتورة رقم ("
