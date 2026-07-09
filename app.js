@@ -1,25 +1,32 @@
-// تكوين العميل وإعداد الاتصال بسوبابيز
+// إعداد الاتصال بـ Supabase
 const SUPABASE_URL = "https://nbgqoggilutczmzqxydp.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
 
 let supabaseClient;
 try {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (typeof supabase !== 'undefined') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        console.error("🛑 مكتبة Supabase لم يتم تحميلها بعد.");
+    }
 } catch(e) {
     console.error("❌ خطأ في تشغيل مكتبة سوبابيز: ", e);
-    alert("⚠️ تنبيه: فشل الاتصال بمكتبة Supabase الأساسية.");
 }
 
-// دالة توليد رقم الفاتورة تلقائياً
+// دالة توليد رقم الفاتورة تلقائياً - معدلة لتشمل الثواني لمنع التكرار تماماً
 function setAutomaticInvoiceId() {
     try {
         const now = new Date();
         const year = now.getFullYear().toString().slice(-2); 
-        const timestamp = now.getTime().toString().slice(-6); 
-        const autoId = `INV-${year}${timestamp}`;
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const timestamp = now.getTime().toString().slice(-4); // استخدام آخر 4 أرقام من الوقت بدقة الملي ثانية
+        const autoId = `INV-${year}${month}-${timestamp}`;
         
-        document.getElementById('inputInvId').value = autoId;
-        document.getElementById('viewInvId').innerText = autoId;
+        const inputInvId = document.getElementById('inputInvId');
+        const viewInvId = document.getElementById('viewInvId');
+        
+        if(inputInvId) inputInvId.value = autoId;
+        if(viewInvId) viewInvId.innerText = autoId;
     } catch (err) {
         console.error("❌ خطأ أثناء توليد رقم الفاتورة:", err);
     }
@@ -28,38 +35,38 @@ function setAutomaticInvoiceId() {
 // دالة تحديث المعاينة الحية للفاتورة
 function updateInvoicePreview() {
     try {
-        const name = document.getElementById('inputName').value;
-        const phone = document.getElementById('inputPhone').value;
-        const invId = document.getElementById('inputInvId').value;
-        const eventDate = document.getElementById('inputEventDate').value;
-        const desc = document.getElementById('inputDesc').value;
+        const name = document.getElementById('inputName')?.value || "";
+        const phone = document.getElementById('inputPhone')?.value || "";
+        const invId = document.getElementById('inputInvId')?.value || "";
+        const eventDate = document.getElementById('inputEventDate')?.value || "";
+        const desc = document.getElementById('inputDesc')?.value || "";
         
-        const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-        const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-        const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+        const rate = parseFloat(document.getElementById('inputRate')?.value) || 0;
+        const insurance = parseFloat(document.getElementById('inputInsurance')?.value) || 0;
+        const paid = parseFloat(document.getElementById('inputPaid')?.value) || 0;
 
         const total = rate + insurance;
         const remaining = total - paid;
 
-        document.getElementById('viewName').innerText = name || "-";
-        document.getElementById('viewPhone').innerText = phone || "-";
-        document.getElementById('viewInvId').innerText = invId || "توليد...";
-        document.getElementById('viewEventDate').innerText = eventDate || "-";
-        document.getElementById('viewDesc').innerText = desc || "-";
+        if(document.getElementById('viewName')) document.getElementById('viewName').innerText = name || "-";
+        if(document.getElementById('viewPhone')) document.getElementById('viewPhone').innerText = phone || "-";
+        if(document.getElementById('viewInvId')) document.getElementById('viewInvId').innerText = invId || "توليد...";
+        if(document.getElementById('viewEventDate')) document.getElementById('viewEventDate').innerText = eventDate || "-";
+        if(document.getElementById('viewDesc')) document.getElementById('viewDesc').innerText = desc || "-";
         
-        document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
-        document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
-        document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
-        document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
-        document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
-        document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
-        document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
+        if(document.getElementById('viewRateTable')) document.getElementById('viewRateTable').innerText = rate.toFixed(3) + " ر.ع";
+        if(document.getElementById('viewAmountTable')) document.getElementById('viewAmountTable').innerText = rate.toFixed(3) + " ر.ع";
+        if(document.getElementById('viewSubtotal')) document.getElementById('viewSubtotal').innerText = rate.toFixed(3) + " ر.ع";
+        if(document.getElementById('viewInsurance')) document.getElementById('viewInsurance').innerText = insurance.toFixed(3) + " ر.ع";
+        if(document.getElementById('viewTotal')) document.getElementById('viewTotal').innerText = total.toFixed(3) + " ر.ع";
+        if(document.getElementById('viewPaid')) document.getElementById('viewPaid').innerText = paid.toFixed(3) + " ر.ع";
+        if(document.getElementById('viewRemaining')) document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
     } catch (err) {
         console.error("❌ خطأ في تحديث المعاينة الحية:", err);
     }
 }
 
-// دالة جلب بيانات لوحة تحكم الإحصاءات والجدول من السحاب
+// جلب بيانات لوحة التحكم
 async function fetchDashboardData() {
     if (!supabaseClient) return;
     try {
@@ -75,6 +82,8 @@ async function fetchDashboardData() {
         if (error) throw error;
 
         const tbody = document.getElementById('dashboardTableBody');
+        if (!tbody) return;
+
         if (!invoices || invoices.length === 0) {
             tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير مسجلة حتى الآن في النظام 📥</td></tr>`;
             return;
@@ -125,16 +134,18 @@ async function fetchDashboardData() {
     }
 }
 
-// دالة حفظ الفاتورة في قاعدة البيانات
+// دالة حفظ الفاتورة
 async function saveInvoiceToSupabase() {
     if (!supabaseClient) {
-        alert("🛑 خطأ: لا يمكن الحفظ لأن اتصال قاعدة البيانات مقطوع تماماً!");
+        alert("🛑 خطأ: اتصال قاعدة البيانات مقطوع!");
         return;
     }
 
     const btn = document.getElementById('btnSave');
-    btn.innerText = "جاري الحفظ... ⏳";
-    btn.disabled = true;
+    if(btn) {
+        btn.innerText = "جاري الحفظ... ⏳";
+        btn.disabled = true;
+    }
 
     const name = document.getElementById('inputName').value.trim();
     const phone = document.getElementById('inputPhone').value.trim();
@@ -143,9 +154,11 @@ async function saveInvoiceToSupabase() {
     const desc = document.getElementById('inputDesc').value;
     
     if (!name || !phone) {
-        alert("⚠️ خطأ في البيانات: يرجى كتابة اسم العميل ورقم الهاتف أولاً قبل الحفظ.");
-        btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
-        btn.disabled = false;
+        alert("⚠️ خطأ: يرجى كتابة اسم العميل ورقم الهاتف أولاً.");
+        if(btn) {
+            btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
+            btn.disabled = false;
+        }
         return;
     }
 
@@ -162,7 +175,7 @@ async function saveInvoiceToSupabase() {
             .select()
             .single();
 
-        if (custError) throw new Error(`مشكلة في بيانات العميل: ${custError.message}`);
+        if (custError) throw new Error(`بيانات العميل: ${custError.message}`);
 
         const { data: invoice, error: invError } = await supabaseClient
             .from('invoices')
@@ -179,7 +192,7 @@ async function saveInvoiceToSupabase() {
             .select()
             .single();
 
-        if (invError) throw new Error(`مشكلة في جدول الفواتير: ${invError.message}`);
+        if (invError) throw new Error(`جدول الفواتير: ${invError.message}`);
 
         const { error: itemError } = await supabaseClient
             .from('invoice_items')
@@ -191,65 +204,85 @@ async function saveInvoiceToSupabase() {
                 amount: rate
             });
 
-        if (itemError) throw new Error(`مشكلة في تفاصيل عناصر الفاتورة: ${itemError.message}`);
+        if (itemError) throw new Error(`تفاصيل العناصر: ${itemError.message}`);
 
-        alert(`🎉 ممتاز! تم حفظ الفاتورة ${invId} بنجاح في السحاب.`);
+        alert(`🎉 تم حفظ الفاتورة ${invId} بنجاح.`);
         setAutomaticInvoiceId();
         updateInvoicePreview();
         fetchDashboardData();
 
     } catch (err) {
-        console.error("❌ خطأ شامل في عملية الحفظ:", err);
+        console.error("❌ خطأ في الحفظ:", err);
         alert(`🛑 حدث خطأ أثناء الحفظ:\n${err.message}`);
     } finally {
-        btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
-        btn.disabled = false;
+        if(btn) {
+            btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
+            btn.disabled = false;
+        }
     }
 }
 
-// دالة إرسال التنبيهات بالواتساب السريع من الجدول
 function quickWhatsApp(phone, name, invId, eventDate, remaining) {
     try {
         if (!phone) { alert("رقم الهاتف غير متوفر."); return; }
         const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nنذكركم بفاتورة حجزكم رقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
         window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
     } catch (err) {
-        alert("فشل التوجيه للواتساب: " + err.message);
+        alert("فشل الواتساب: " + err.message);
     }
 }
 
-// إعداد مراقبي الأحداث (Event Listeners) عند تحميل الصفحة بالكامل
-document.addEventListener("DOMContentLoaded", () => {
+// دالة التشغيل الآمنة بعد تحميل شجرة DOM
+function initializeApp() {
     setAutomaticInvoiceId();
     updateInvoicePreview();
     fetchDashboardData();
 
-    // ربط المدخلات بالمعاينة الحية
-    document.getElementById('invoiceForm').addEventListener('input', updateInvoicePreview);
+    const invoiceForm = document.getElementById('invoiceForm');
+    if (invoiceForm) {
+        invoiceForm.addEventListener('input', updateInvoicePreview);
+    }
 
-    // ربط الأزرار بأفعالها البرمجية الآمنة
-    document.getElementById('btnSave').addEventListener('click', saveInvoiceToSupabase);
-    document.getElementById('btnRefreshDash').addEventListener('click', fetchDashboardData);
+    const btnSave = document.getElementById('btnSave');
+    if (btnSave) btnSave.addEventListener('click', saveInvoiceToSupabase);
+
+    const btnRefreshDash = document.getElementById('btnRefreshDash');
+    if (btnRefreshDash) btnRefreshDash.addEventListener('click', fetchDashboardData);
     
-    document.getElementById('btnPrint').addEventListener('click', () => {
-        try { window.print(); } catch (err) { alert(`🛑 فشل فتح نافذة الطباعة: ${err.message}`); }
-    });
+    const btnPrint = document.getElementById('btnPrint');
+    if (btnPrint) {
+        btnPrint.addEventListener('click', () => {
+            try { window.print(); } catch (err) { alert(`🛑 فشل الطباعة: ${err.message}`); }
+        });
+    }
 
-    document.getElementById('btnWhatsApp').addEventListener('click', () => {
-        try {
-            const phone = document.getElementById('inputPhone').value.trim();
-            const name = document.getElementById('inputName').value;
-            const invId = document.getElementById('inputInvId').value;
-            const eventDate = document.getElementById('inputEventDate').value;
-            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-            const remaining = (rate + insurance - paid).toFixed(3);
-            
-            if (!phone) { alert("⚠️ تنبيه: يرجى إدخال رقم واتساب العميل أولاً."); return; }
+    const btnWhatsApp = document.getElementById('btnWhatsApp');
+    if (btnWhatsApp) {
+        btnWhatsApp.addEventListener('click', () => {
+            try {
+                const phone = document.getElementById('inputPhone').value.trim();
+                const name = document.getElementById('inputName').value;
+                const invId = document.getElementById('inputInvId').value;
+                const eventDate = document.getElementById('inputEventDate').value;
+                const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+                const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+                const remaining = (rate + insurance - paid).toFixed(3);
+                
+                if (!phone) { alert("⚠️ يرجى إدخال رقم واتساب العميل."); return; }
 
-            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
-            window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
-        } catch (err) { alert(`🛑 فشل الانتقال لتطبيق واتساب: ${err.message}`); }
-    });
+                const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
+                window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+            } catch (err) { alert(`🛑 فشل الواتساب: ${err.message}`); }
+        });
+    }
+}
+
+// ننتظر تحميل السكريبتات بالكامل للتأكد من وجود مكتبة سوبابيز في الذاكرة
+window.addEventListener('load', () => {
+    // إعادة محاولة الربط في حال تأخرت مكتبة سوبابيز الأصلية في التحميل
+    if (!supabaseClient && typeof supabase !== 'undefined') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    initializeApp();
 });
