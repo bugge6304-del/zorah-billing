@@ -4,7 +4,7 @@ body {
     font-family: 'Cairo', sans-serif; 
 }
 
-/* 🖨️ التنسيق الذكي لطباعة الفاتورة أو حفظها كـ PDF وحمايتها من التشويه والتعليق */
+/* 🖨️ تنسيق الطباعة الذكي لحفظ الفاتورة PDF بنقاء تام وإخفاء لوحات التحكم */
 @media print {
     body {
         background-color: white !important;
@@ -12,12 +12,10 @@ body {
         padding: 0 !important;
         margin: 0 !important;
     }
-    /* إخفاء كافة العناصر واللوحات والداشبورد */
     #controlPanel, #actionButtons, #dashboardPanel, #btnCustomerPrint, .eruda-container {
         display: none !important;
         visibility: hidden !important;
     }
-    /* تمديد الفاتورة لتأخذ الورقة بالكامل */
     #previewPanel {
         width: 100% !important;
         max-width: 100% !important;
