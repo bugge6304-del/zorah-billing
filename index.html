@@ -14,7 +14,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght=300;400;700&display=swap');
         body { font-family: 'Cairo', sans-serif; }
         
-        /* تنسيق الطباعة وحفظ PDF النظيف للعميل */
+        /* 🖨️ تنسيق استثنائي للطباعة وحفظ PDF نظيف على آيفون وأندرويد والكمبيوتر */
         @media print {
             body { background-color: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
             #controlPanel, #actionButtons, #dashboardPanel, #btnCustomerPrint, .eruda-container { display: none !important; visibility: hidden !important; }
@@ -23,117 +23,119 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8 space-y-8 bg-[#FDFBF7] text-[#5C3A21]">
+<body class="p-3 sm:p-5 md:p-8 space-y-8 bg-[#FDFBF7] text-[#5C3A21]">
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         
-        <div id="controlPanel" class="lg:col-span-5 bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit">
-            <h2 class="text-xl font-bold mb-6 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
+        <div id="controlPanel" class="lg:col-span-5 bg-white p-5 md:p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit w-full">
+            <h2 class="text-lg md:text-xl font-bold mb-5 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
                 <span>🛠️</span> إنشاء فاتورة حجز جديدة
             </h2>
             <form id="invoiceForm" class="space-y-4" onsubmit="return false;">
                 <div>
                     <label class="block text-xs font-bold mb-1">اسم العميل:</label>
-                    <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                    <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-1">رقم الواتساب (مع رمز الدولة بدون +):</label>
-                    <input type="text" id="inputPhone" value="96896379225" placeholder="968xxxxxxx" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                    <label class="block text-xs font-bold mb-1">رقم الواتساب (مع رمز الدولة وبدون +):</label>
+                    <input type="text" id="inputPhone" value="96896379225" placeholder="968xxxxxxx" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-bold mb-1">رقم الفاتورة:</label>
-                        <input type="text" id="inputInvId" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#EFEAE2] text-[#8C7662] font-bold focus:outline-none" readonly>
+                        <input type="text" id="inputInvId" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#EFEAE2] text-[#8C7662] font-bold text-sm focus:outline-none" readonly>
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1">تاريخ الحفل:</label>
-                        <input type="date" id="inputEventDate" value="2026-08-15" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                        <input type="date" id="inputEventDate" value="2026-08-15" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold mb-1">وصف الحجز / الثيم:</label>
-                    <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
+                    <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-xs font-bold mb-1">سعر الإيجار:</label>
-                        <input type="number" id="inputRate" value="210" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                        <input type="number" id="inputRate" value="210" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1">التأمين:</label>
-                        <input type="number" id="inputInsurance" value="20" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                        <input type="number" id="inputInsurance" value="20" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1">المقدم المدفوع:</label>
-                        <input type="number" id="inputPaid" value="50" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] focus:outline-none focus:border-[#5C3A21]">
+                        <input type="number" id="inputPaid" value="50" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
                     </div>
                 </div>
-                <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] cursor-pointer mt-4 shadow-sm">
+                <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] cursor-pointer mt-4 shadow-sm text-sm transition">
                     حفظ الفاتورة في السحاب 💾
                 </button>
             </form>
         </div>
 
-        <div id="previewPanel" class="lg:col-span-7 space-y-4">
+        <div id="previewPanel" class="lg:col-span-7 space-y-4 w-full">
             <div id="actionButtons" class="flex justify-end gap-2">
-                <button id="btnPrint" class="bg-[#8C7662] text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm cursor-pointer">طباعة / تحميل PDF 📄</button>
-                <button id="btnWhatsApp" class="bg-[#25D366] text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm cursor-pointer">إرسال واتساب للعميل 💬</button>
+                <button id="btnPrint" class="bg-[#8C7662] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm cursor-pointer transition hover:bg-[#75614f]">طباعة / تحميل PDF 📄</button>
+                <button id="btnWhatsApp" class="bg-[#25D366] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm cursor-pointer transition hover:bg-[#20ba5a]">إرسال واتساب للعميل 💬</button>
             </div>
 
-            <div id="invoice" class="bg-white p-6 md:p-8 rounded-xl border border-[#EFEAE2] shadow-sm">
+            <div id="invoice" class="bg-white p-5 sm:p-6 md:p-8 rounded-xl border border-[#EFEAE2] shadow-sm w-full">
                 <div class="flex justify-between items-center border-b border-[#EFEAE2] pb-4 mb-4">
                     <div>
-                        <h1 class="text-2xl font-bold text-[#5C3A21] mb-1">زُورَة</h1>
-                        <p class="text-xs text-[#8C7662]">لتأجير مستلزمات الحول حول والحفلات</p>
+                        <h1 class="text-xl md:text-2xl font-bold text-[#5C3A21] mb-1">زُورَة</h1>
+                        <p class="text-[10px] sm:text-xs text-[#8C7662]">لتأجير مستلزمات الحول حول والحفلات</p>
                     </div>
-                    <div class="w-20 h-20 rounded-full border border-[#5C3A21] flex items-center justify-center bg-[#FDFBF7]">
-                        <span class="text-[#5C3A21] font-bold text-sm">زورة</span>
+                    <div class="w-16 h-16 sm:w-20 sm:w-20 rounded-full border border-[#5C3A21] flex items-center justify-center bg-[#FDFBF7]">
+                        <span class="text-[#5C3A21] font-bold text-xs sm:text-sm">زورة</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-6 bg-[#FDFBF7] p-3 rounded-lg border border-[#EFEAE2] text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 bg-[#FDFBF7] p-3 rounded-lg border border-[#EFEAE2] text-[11px] sm:text-xs">
                     <div>
                         <h3 class="font-bold text-[#A39081] mb-1">صادرة إلى (BILL TO):</h3>
                         <p class="font-bold text-sm text-[#5C3A21]" id="viewName">جاري جلب البيانات...</p>
                         <p class="text-[#8C7662]" id="viewPhone">-</p>
                     </div>
-                    <div class="text-left">
-                        <h2 class="font-bold text-[#5C3A21] text-sm">فاتورة رقم: <span id="viewInvId">توليد...</span></h2>
+                    <div class="sm:text-left">
+                        <h2 class="font-bold text-[#5C3A21] text-xs sm:text-sm">فاتورة رقم: <span id="viewInvId">توليد...</span></h2>
                         <p class="font-bold text-[#5C3A21] mt-1">تاريخ المناسبة: <span id="viewEventDate">-</span></p>
                     </div>
                 </div>
 
-                <table class="w-full text-right text-xs border-collapse mb-6">
-                    <thead>
-                        <tr class="bg-[#5C3A21] text-white">
-                            <th class="p-2 rounded-r">البيان (DESCRIPTION)</th>
-                            <th class="p-2 text-center">السعر</th>
-                            <th class="p-2 text-center">الكمية</th>
-                            <th class="p-2 text-left rounded-l">الإجمالي</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-[#EFEAE2]">
-                        <tr class="text-[#5C3A21]">
-                            <td class="p-3 font-medium" id="viewDesc">-</td>
-                            <td class="p-3 text-center" id="viewRateTable">0.000 ر.ع</td>
-                            <td class="p-3 text-center">1</td>
-                            <td class="p-3 text-left font-bold" id="viewAmountTable">0.000 ر.ع</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto w-full border border-[#EFEAE2] rounded-lg mb-6">
+                    <table class="w-full text-right text-xs border-collapse min-w-[400px]">
+                        <thead>
+                            <tr class="bg-[#5C3A21] text-white">
+                                <th class="p-2.5">البيان (DESCRIPTION)</th>
+                                <th class="p-2.5 text-center">السعر</th>
+                                <th class="p-2.5 text-center">الكمية</th>
+                                <th class="p-2.5 text-left">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#EFEAE2]">
+                            <tr class="text-[#5C3A21]">
+                                <td class="p-3 font-medium break-words max-w-[200px]" id="viewDesc">-</td>
+                                <td class="p-3 text-center whitespace-nowrap" id="viewRateTable">0.000 ر.ع</td>
+                                <td class="p-3 text-center">1</td>
+                                <td class="p-3 text-left font-bold whitespace-nowrap" id="viewAmountTable">0.000 ر.ع</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                <div class="flex justify-between items-start text-[11px] gap-4">
-                    <div class="text-[#8C7662] max-w-xs space-y-1">
+                <div class="flex flex-col sm:flex-row justify-between items-start text-[11px] gap-6">
+                    <div class="text-[#8C7662] max-w-xs space-y-1 order-2 sm:order-1">
                         <p class="font-bold text-[#5C3A21]">📌 شروط التأجير:</p>
                         <p>• يتضمن الحجز تأميناً مسترداً يُرجع كاملاً بعد سلامة الأدوات.</p>
                         <p>• يلتزم المستأجر بالمحافظة على جودة ونظافة الثيم.</p>
                     </div>
-                    <div class="w-48 space-y-1 text-[#5C3A21] border-t border-[#EFEAE2] pt-2">
-                        <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="viewSubtotal">0.000 ر.ع</span></div>
-                        <div class="flex justify-between text-[#8C7662]"><span>التأمين:</span><span id="viewInsurance">0.000 ر.ع</span></div>
-                        <div class="flex justify-between font-bold text-xs border-t border-[#EFEAE2] pt-1"><span>الإجمالي الكلي:</span><span id="viewTotal">0.000 ر.ع</span></div>
-                        <div class="flex justify-between text-emerald-700 bg-emerald-50 p-1 rounded"><span>المدفوع مقدماً:</span><span id="viewPaid">0.000 ر.ع</span></div>
-                        <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1 rounded border border-amber-200"><span>المتبقي المستحق:</span><span id="viewRemaining">0.000 ر.ع</span></div>
+                    <div class="w-full sm:w-52 space-y-1.5 text-[#5C3A21] border-t sm:border-t-0 border-[#EFEAE2] pt-3 sm:pt-0 order-1 sm:order-2 text-xs">
+                        <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="viewSubtotal" class="font-bold">0.000 ر.ع</span></div>
+                        <div class="flex justify-between text-[#8C7662]"><span>التأمين (مسترد):</span><span id="viewInsurance">0.000 ر.ع</span></div>
+                        <div class="flex justify-between font-bold text-sm border-t border-[#EFEAE2] pt-1.5"><span>الإجمالي الكلي:</span><span id="viewTotal">0.000 ر.ع</span></div>
+                        <div class="flex justify-between text-emerald-700 bg-emerald-50 p-1.5 rounded font-bold"><span>المدفوع مقدماً:</span><span id="viewPaid">0.000 ر.ع</span></div>
+                        <div class="flex justify-between font-bold text-amber-800 bg-amber-50 p-1.5 rounded border border-amber-200"><span>المتبقي المستحق:</span><span id="viewRemaining">0.000 ر.ع</span></div>
                     </div>
                 </div>
             </div>
@@ -141,26 +143,28 @@
         </div>
     </div>
 
-    <div id="dashboardPanel" class="max-w-7xl mx-auto bg-white p-6 rounded-xl border border-[#EFEAE2] shadow-sm space-y-6">
+    <div id="dashboardPanel" class="max-w-7xl mx-auto bg-white p-5 md:p-6 rounded-xl border border-[#EFEAE2] shadow-sm space-y-6 w-full">
         <div class="flex justify-between items-center border-b border-[#EFEAE2] pb-4">
             <div>
-                <h2 class="text-xl font-bold flex items-center gap-2"><span>📊</span> لوحة تحكم وإحصائيات المتجر</h2>
+                <h2 class="text-lg md:text-xl font-bold flex items-center gap-2"><span>📊</span> لوحة تحكم وإحصائيات المتجر</h2>
             </div>
-            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-4 py-2 rounded-lg font-bold text-xs cursor-pointer">تحديث البيانات 🔄</button>
+            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer transition hover:bg-[#4a2e1a]">تحديث البيانات 🔄</button>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-[#FDFBF7] p-4 rounded-xl border border-[#EFEAE2]"><p class="text-xs font-bold text-[#8C7662]">إجمالي الفواتير</p><p id="statTotalInvoices" class="text-2xl font-bold text-[#5C3A21]">0</p></div>
-            <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100"><p class="text-xs font-bold text-emerald-800">إجمالي المحصل</p><p id="statTotalPaid" class="text-2xl font-bold text-emerald-700">0.000 ر.ع</p></div>
-            <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100"><p class="text-xs font-bold text-amber-900">المبالغ المتبقية</p><p id="statTotalRemaining" class="text-2xl font-bold text-amber-700">0.000 ر.ع</p></div>
-            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100"><p class="text-xs font-bold text-blue-900">إجمالي التأمين</p><p id="statTotalInsurance" class="text-2xl font-bold text-blue-700">0.000 ر.ع</p></div>
+        
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <div class="bg-[#FDFBF7] p-3 md:p-4 rounded-xl border border-[#EFEAE2]"><p class="text-[10px] md:text-xs font-bold text-[#8C7662]">إجمالي الفواتير</p><p id="statTotalInvoices" class="text-xl md:text-2xl font-bold text-[#5C3A21] mt-1">0</p></div>
+            <div class="bg-emerald-50/50 p-3 md:p-4 rounded-xl border border-emerald-100"><p class="text-[10px] md:text-xs font-bold text-emerald-800">إجمالي المحصل</p><p id="statTotalPaid" class="text-xl md:text-2xl font-bold text-emerald-700 mt-1">0.000 ر.ع</p></div>
+            <div class="bg-amber-50/50 p-3 md:p-4 rounded-xl border border-amber-100"><p class="text-[10px] md:text-xs font-bold text-amber-900">المبالغ المتبقية</p><p id="statTotalRemaining" class="text-xl md:text-2xl font-bold text-amber-700 mt-1">0.000 ر.ع</p></div>
+            <div class="bg-blue-50/50 p-3 md:p-4 rounded-xl border border-blue-100"><p class="text-[10px] md:text-xs font-bold text-blue-900">إجمالي التأمين</p><p id="statTotalInsurance" class="text-xl md:text-2xl font-bold text-blue-700 mt-1">0.000 ر.ع</p></div>
         </div>
-        <div class="overflow-x-auto border border-[#EFEAE2] rounded-xl bg-[#FDFBF7]">
-            <table class="w-full text-right text-xs border-collapse">
+        
+        <div class="overflow-x-auto border border-[#EFEAE2] rounded-xl bg-[#FDFBF7] w-full">
+            <table class="w-full text-right text-xs border-collapse min-w-[700px]">
                 <thead>
                     <tr class="bg-[#EFEAE2] text-[#5C3A21] border-b"><th class="p-3">رقم الفاتورة</th><th class="p-3">العميل</th><th class="p-3">تاريخ الحفل</th><th class="p-3">الإجمالي</th><th class="p-3">المدفوع</th><th class="p-3">المتبقي</th><th class="p-3">الحالة</th><th class="p-3 text-center">إجراء</th></tr>
                 </thead>
                 <tbody id="dashboardTableBody" class="divide-y divide-[#EFEAE2] bg-white">
-                    <tr><td colspan="8" class="p-6 text-center text-[#8C7662]">جاري التحميل... ⏳</td></tr>
+                    <tr><td colspan="8" class="p-6 text-center text-[#8C7662]">جاري التحميل من السحاب... ⏳</td></tr>
                 </tbody>
             </table>
         </div>
@@ -213,7 +217,7 @@
                 const tbody = document.getElementById('dashboardTableBody');
                 if (!tbody) return;
                 if (!invoices || invoices.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير 📥</td></tr>`; return;
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير مسجلة 📥</td></tr>`; return;
                 }
                 let totalPaid = 0, totalRemaining = 0, totalInsurance = 0, tableHtml = "";
                 invoices.forEach(inv => {
@@ -221,36 +225,24 @@
                     const phone = inv.customers ? inv.customers.phone : "";
                     const rem = inv.total_amount - inv.paid_amount;
                     totalPaid += inv.paid_amount; totalRemaining += rem; totalInsurance += inv.insurance_amount;
-                    const badge = rem <= 0 ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-[10px]">مدفوعة</span>` : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px]">متبقي</span>`;
-                    tableHtml += `<tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]"><td class="p-3 font-bold">${inv.invoice_number}</td><td class="p-3">${name}</td><td class="p-3 font-mono">${inv.event_date || "-"}</td><td class="p-3 font-bold">${inv.total_amount.toFixed(3)}</td><td class="p-3 text-emerald-700">${inv.paid_amount.toFixed(3)}</td><td class="p-3 text-amber-800 font-bold">${rem.toFixed(3)}</td><td class="p-3">${badge}</td><td class="p-3 text-center"><button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] cursor-pointer">واتساب 💬</button></td></tr>`;
+                    const badge = rem <= 0 ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">مدفوعة</span>` : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold text-[10px]">متبقي</span>`;
+                    tableHtml += `<tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]"><td class="p-3 font-bold">${inv.invoice_number}</td><td class="p-3">${name}</td><td class="p-3 font-mono">${inv.event_date || "-"}</td><td class="p-3 font-bold">${inv.total_amount.toFixed(3)}</td><td class="p-3 text-emerald-700">${inv.paid_amount.toFixed(3)}</td><td class="p-3 text-amber-800 font-bold">${rem.toFixed(3)}</td><td class="p-3">${badge}</td><td class="p-3 text-center"><button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">واتساب 💬</button></td></tr>`;
                 });
                 document.getElementById('statTotalInvoices').innerText = invoices.length;
                 document.getElementById('statTotalPaid').innerText = totalPaid.toFixed(3) + " ر.ع";
-                document.getElementById('statTotalRemaining').innerText = totalRemainingSum = totalRemaining.toFixed(3) + " ر.ع";
+                document.getElementById('statTotalRemaining').innerText = totalRemaining.toFixed(3) + " ر.ع";
                 document.getElementById('statTotalInsurance').innerText = totalInsurance.toFixed(3) + " ر.ع";
                 tbody.innerHTML = tableHtml;
             } catch (err) { console.error(err); }
         }
 
-        // 🛠️ التحديث الجوهري لإصلاح خطأ "الفاتورة غير موجودة" وحل مشكلة الرموز والشرطات
         async function fetchSingleInvoiceForCustomer(invoiceNumber) {
             if (!supabaseClient) return;
             try {
-                // فك ترميز النص وتنظيفه لضمان المطابقة الكاملة مع رقم السحاب
                 const cleanInvoiceNumber = decodeURIComponent(invoiceNumber).trim();
-
-                let { data: invoices, error } = await supabaseClient
-                    .from('invoices')
-                    .select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, customers ( name, phone ), invoice_items ( item_description, rate )')
-                    .eq('invoice_number', cleanInvoiceNumber);
-
+                let { data: invoices, error } = await supabaseClient.from('invoices').select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, customers ( name, phone ), invoice_items ( item_description, rate )').eq('invoice_number', cleanInvoiceNumber);
                 if (error) throw error;
-
-                if (!invoices || invoices.length === 0) { 
-                    alert("🛑 عذراً، لم يتم العثور على الفاتورة رقم ("+ cleanInvoiceNumber +") في السحاب. تأكد من حفظها أولاً!"); 
-                    return; 
-                }
-
+                if (!invoices || invoices.length === 0) { alert("🛑 عذراً، لم يتم العثور على الفاتورة رقم ("+ cleanInvoiceNumber +") في السحاب."); return; }
                 const inv = invoices[0];
                 const rem = inv.total_amount - inv.paid_amount;
                 document.getElementById('viewName').innerText = inv.customers ? inv.customers.name : "-";
@@ -265,19 +257,19 @@
                 document.getElementById('viewTotal').innerText = inv.total_amount.toFixed(3) + " ر.ع";
                 document.getElementById('viewPaid').innerText = inv.paid_amount.toFixed(3) + " ر.ع";
                 document.getElementById('viewRemaining').innerText = rem.toFixed(3) + " ر.ع";
-            } catch (err) { console.error(err); alert("حدث خطأ أثناء جلب الفاتورة: " + err.message); }
+            } catch (err) { console.error(err); }
         }
 
         async function saveInvoiceToSupabase() {
             if (!supabaseClient) return;
             const btn = document.getElementById('btnSave');
-            btn.innerText = "جاري الحفظ... ⏳"; btn.disabled = true;
+            btn.innerText = "جاري الحفظ بالسحاب... ⏳"; btn.disabled = true;
             const name = document.getElementById('inputName').value.trim();
             const phone = document.getElementById('inputPhone').value.trim();
             const invId = document.getElementById('inputInvId').value;
             const eventDate = document.getElementById('inputEventDate').value;
             const desc = document.getElementById('inputDesc').value;
-            if (!name || !phone) { alert("أدخل الاسم والهاتف."); btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; return; }
+            if (!name || !phone) { alert("تنبيه: يرجى كتابة الاسم والهاتف أولاً."); btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; return; }
             const rate = parseFloat(document.getElementById('inputRate').value) || 0;
             const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
             const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
@@ -286,26 +278,29 @@
                 let { data: cust } = await supabaseClient.from('customers').upsert({ name, phone }, { onConflict: 'phone' }).select().single();
                 let { data: inv } = await supabaseClient.from('invoices').insert({ customer_id: cust.id, invoice_number: invId, event_date: eventDate, insurance_amount: insurance, subtotal_amount: rate, total_amount: total, paid_amount: paid, status: (total - paid <= 0) ? 'paid' : 'unpaid' }).select().single();
                 await supabaseClient.from('invoice_items').insert({ invoice_id: inv.id, item_description: desc, rate, quantity: 1, amount: rate });
-                alert("🎉 تم حفظ الفاتورة بنجاح في السحاب!"); setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
+                alert("🎉 تم حفظ الفاتورة وإدراجها بنجاح!"); setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
             } catch (err) { alert(err.message); } finally { btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; }
         }
 
+        // 📱 إرسال متوافق تماماً مع آيفون وأندرويد باستخدام بروتوكول الويب العالمي لـ WhatsApp API
         function sendWhatsAppWithPDF() {
             const phone = document.getElementById('inputPhone').value.trim();
             const name = document.getElementById('inputName').value;
             const invId = document.getElementById('inputInvId').value;
             const eventDate = document.getElementById('inputEventDate').value;
             const rem = (parseFloat(document.getElementById('inputRate').value || 0) + parseFloat(document.getElementById('inputInsurance').value || 0) - parseFloat(document.getElementById('inputPaid').value || 0)).toFixed(3);
-            if (!phone) { alert("أدخل رقم العميل."); return; }
+            if (!phone) { alert("أدخل رقم هاتف العميل."); return; }
             const url = `https://bugge6304-del.github.io/zorah-billing/?inv=${encodeURIComponent(invId)}`;
-            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجزكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المتبقي المستحق: ${rem} ر.ع.\n\n📄 لمعاينة الفاتورة وحفظها PDF اضغط الرابط:\n${url}\n\nشكراً لكم 🤍`;
-            window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${rem} ر.ع.\n\n📄 لمشاهدة الفاتورة الرسمية وتحميلها بصيغة PDF اضغط على الرابط التالي:\n${url}\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
+            
+            // الفتح الآمن للرابط العالمي المعتمد في نظام iOS
+            window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`, '_blank');
         }
 
         function quickWhatsApp(phone, name, invId, eventDate, remaining) {
             const url = `https://bugge6304-del.github.io/zorah-billing/?inv=${encodeURIComponent(invId)}`;
-            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتذكير بفاتورة حجزكم رقم: ${invId}.\n💰 المتبقي المستحق: ${remaining} ر.ع.\n\n📄 لمعاينة الفاتورة PDF:\n${url}`;
-            window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتذكير بفاتورة حجزكم رقم: ${invId}.\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\n📄 لمعاينة وتحميل الفاتورة الرسمية بصيغة PDF:\n${url}`;
+            window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`, '_blank');
         }
 
         window.addEventListener('load', () => {
