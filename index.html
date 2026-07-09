@@ -29,9 +29,11 @@
         
         <div id="controlPanel" class="lg:col-span-5 bg-white p-5 md:p-6 rounded-xl border border-[#EFEAE2] shadow-sm h-fit w-full">
             <h2 class="text-lg md:text-xl font-bold mb-5 pb-2 border-b border-[#EFEAE2] flex items-center gap-2">
-                <span>🛠️</span> إنشاء فاتورة حجز جديدة
+                <span>🛠️</span> <span id="formTitle">إنشاء فاتورة حجز جديدة</span>
             </h2>
             <form id="invoiceForm" class="space-y-4" onsubmit="return false;">
+                <input type="hidden" id="editInvoiceId" value="">
+                
                 <div>
                     <label class="block text-xs font-bold mb-1">اسم العميل:</label>
                     <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">
@@ -70,6 +72,9 @@
                 </div>
                 <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] active:scale-[0.98] transition-all duration-200 cursor-pointer mt-4 shadow-sm text-sm border-b-4 border-[#3e2614]">
                     حفظ الفاتورة في السحاب 💾
+                </button>
+                <button type="button" id="btnCancelEdit" class="hidden w-full bg-gray-200 text-gray-700 p-2 rounded-lg font-bold hover:bg-gray-300 transition text-xs mt-2">
+                    إلغاء التعديل والتراجع ↩️
                 </button>
             </form>
         </div>
@@ -171,9 +176,9 @@
         </div>
         
         <div class="overflow-x-auto border border-[#EFEAE2] rounded-xl bg-[#FDFBF7] w-full">
-            <table class="w-full text-right text-xs border-collapse min-w-[700px]">
+            <table class="w-full text-right text-xs border-collapse min-w-[750px]">
                 <thead>
-                    <tr class="bg-[#EFEAE2] text-[#5C3A21] border-b"><th class="p-3">رقم الفاتورة</th><th class="p-3">العميل</th><th class="p-3">تاريخ الحفل</th><th class="p-3">الإجمالي</th><th class="p-3">المدفوع</th><th class="p-3">المتبقي</th><th class="p-3">الحالة</th><th class="p-3 text-center">إجراء</th></tr>
+                    <tr class="bg-[#EFEAE2] text-[#5C3A21] border-b"><th class="p-3">رقم الفاتورة</th><th class="p-3">العميل</th><th class="p-3">تاريخ الحفل</th><th class="p-3">الإجمالي</th><th class="p-3">المدفوع</th><th class="p-3">المتبقي</th><th class="p-3">الحالة</th><th class="p-3 text-center">إجراءات التحكم</th></tr>
                 </thead>
                 <tbody id="dashboardTableBody" class="divide-y divide-[#EFEAE2] bg-white">
                     <tr><td colspan="8" class="p-6 text-center text-[#8C7662]">جاري التحميل من السحاب... ⏳</td></tr>
@@ -186,6 +191,9 @@
         const SUPABASE_URL = "https://nbgqoggilutczmzqxydp.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
         let supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        // لتخزين البيانات محلياً لتسهيل التعديل السريع بدون استعلامات إضافية
+        let localInvoicesCache = [];
 
         function setAutomaticInvoiceId() {
             const now = new Date();
@@ -227,20 +235,38 @@
             
             try {
                 const tbody = document.getElementById('dashboardTableBody');
-                let { data: invoices, error } = await supabaseClient.from('invoices').select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, status, customers ( name, phone )').order('created_at', { ascending: false });
+                let { data: invoices, error } = await supabaseClient.from('invoices').select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, status, customers ( id, name, phone ), invoice_items ( id, item_description, rate )').order('created_at', { ascending: false });
                 if (error) throw error;
                 if (!tbody) return;
                 if (!invoices || invoices.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير مسجلة 📥</td></tr>`; return;
                 }
+                
+                localInvoicesCache = invoices; // تخزين مؤقت
                 let totalPaid = 0, totalRemaining = 0, totalInsurance = 0, tableHtml = "";
+                
                 invoices.forEach(inv => {
                     const name = inv.customers ? inv.customers.name : "-";
                     const phone = inv.customers ? inv.customers.phone : "";
                     const rem = inv.total_amount - inv.paid_amount;
                     totalPaid += inv.paid_amount; totalRemaining += rem; totalInsurance += inv.insurance_amount;
                     const badge = rem <= 0 ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">مدفوعة</span>` : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold text-[10px]">متبقي</span>`;
-                    tableHtml += `<tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]"><td class="p-3 font-bold">${inv.invoice_number}</td><td class="p-3">${name}</td><td class="p-3 font-mono">${inv.event_date || "-"}</td><td class="p-3 font-bold">${inv.total_amount.toFixed(3)}</td><td class="p-3 text-emerald-700">${inv.paid_amount.toFixed(3)}</td><td class="p-3 text-amber-800 font-bold">${rem.toFixed(3)}</td><td class="p-3">${badge}</td><td class="p-3 text-center"><button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition-all duration-150 hover:bg-[#1ebd54] active:scale-90 border-b border-[#168a3d]">واتساب 💬</button></td></tr>`;
+                    
+                    tableHtml += `
+                    <tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]">
+                        <td class="p-3 font-bold">${inv.invoice_number}</td>
+                        <td class="p-3">${name}</td>
+                        <td class="p-3 font-mono">${inv.event_date || "-"}</td>
+                        <td class="p-3 font-bold">${inv.total_amount.toFixed(3)}</td>
+                        <td class="p-3 text-emerald-700">${inv.paid_amount.toFixed(3)}</td>
+                        <td class="p-3 text-amber-800 font-bold">${rem.toFixed(3)}</td>
+                        <td class="p-3">${badge}</td>
+                        <td class="p-3 text-center flex justify-center gap-1.5">
+                            <button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition hover:bg-[#1ebd54] active:scale-90 shadow-sm border-b border-[#168a3d]">واتساب 💬</button>
+                            <button onclick="loadInvoiceToEdit('${inv.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition hover:bg-blue-700 active:scale-90 shadow-sm border-b border-blue-800">تعديل ✏️</button>
+                            <button onclick="deleteInvoiceFromDatabase('${inv.id}', '${inv.invoice_number}')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition hover:bg-red-700 active:scale-90 shadow-sm border-b border-red-800">حذف 🗑️</button>
+                        </td>
+                    </tr>`;
                 });
                 document.getElementById('statTotalInvoices').innerText = invoices.length;
                 document.getElementById('statTotalPaid').innerText = totalPaid.toFixed(3) + " ر.ع";
@@ -250,13 +276,70 @@
             } catch (err) { console.error(err); }
         }
 
+        // ✏️ تحضير الفاتورة وإدراج بياناتها داخل استمارة الإدخال لتعديلها
+        function loadInvoiceToEdit(dbId) {
+            const inv = localInvoicesCache.find(i => i.id === dbId);
+            if (!inv) return;
+
+            document.getElementById('editInvoiceId').value = inv.id;
+            document.getElementById('inputName').value = inv.customers?.name || "";
+            document.getElementById('inputPhone').value = inv.customers?.phone || "";
+            document.getElementById('inputInvId').value = inv.invoice_number;
+            document.getElementById('inputEventDate').value = inv.event_date || "";
+            document.getElementById('inputDesc').value = inv.invoice_items?.[0]?.item_description || "";
+            document.getElementById('inputRate').value = inv.subtotal_amount;
+            document.getElementById('inputInsurance').value = inv.insurance_amount;
+            document.getElementById('inputPaid').value = inv.paid_amount;
+
+            // تغيير هوية الأزرار لتتناسب مع وضع التعديل
+            document.getElementById('formTitle').innerText = `تعديل الفاتورة (${inv.invoice_number})`;
+            document.getElementById('btnSave').innerText = "تحديث الفاتورة الحالية 🔄";
+            document.getElementById('btnSave').className = "w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 cursor-pointer mt-4 shadow-sm text-sm border-b-4 border-blue-800";
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            updateInvoicePreview();
+        }
+
+        // إلغاء وضع التعديل والعودة لوضع الإدخال الطبيعي
+        function cancelEditMode() {
+            document.getElementById('editInvoiceId').value = "";
+            document.getElementById('formTitle').innerText = "إنشاء فاتورة حجز جديدة";
+            document.getElementById('btnSave').innerText = "حفظ الفاتورة في السحاب 💾";
+            document.getElementById('btnSave').className = "w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] active:scale-[0.98] transition-all duration-200 cursor-pointer mt-4 shadow-sm text-sm border-b-4 border-[#3e2614]";
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+            setAutomaticInvoiceId();
+            updateInvoicePreview();
+        }
+
+        // 🗑️ حذف الفاتورة ومحتوياتها نهائياً من قاعدة البيانات السحابية
+        async function deleteInvoiceFromDatabase(dbId, invNum) {
+            if (!supabaseClient) return;
+            if (!confirm(`⚠️ هل أنت متأكد تماماً من رغبتك في حذف الفاتورة رقم (${invNum}) نهائياً من السحاب وقاعدة البيانات؟`)) return;
+
+            try {
+                // 1. حذف العناصر التابعة أولاً من جدول invoice_items لمنع مشاكل القيود الهيكلية
+                await supabaseClient.from('invoice_items').delete().eq('invoice_id', dbId);
+                // 2. حذف الفاتورة الرئيسية من جدول invoices
+                const { error } = await supabaseClient.from('invoices').delete().eq('id', dbId);
+                
+                if (error) throw error;
+                alert(`🗑️ تم حذف الفاتورة رقم ${invNum} بنجاح من النظام.`);
+                
+                // إلغاء التعديل إذا كانت الفاتورة المحذوفة هي التي يجري تعديلها حالياً
+                if (document.getElementById('editInvoiceId').value === dbId) cancelEditMode();
+                
+                fetchDashboardData(true);
+            } catch (err) { alert(`🛑 فشل الحذف: ${err.message}`); }
+        }
+
         async function fetchSingleInvoiceForCustomer(invoiceNumber) {
             if (!supabaseClient) return;
             try {
                 const cleanInvoiceNumber = decodeURIComponent(invoiceNumber).trim();
                 let { data: invoices, error } = await supabaseClient.from('invoices').select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, customers ( name, phone ), invoice_items ( item_description, rate )').eq('invoice_number', cleanInvoiceNumber);
                 if (error) throw error;
-                if (!invoices || invoices.length === 0) { alert("🛑 عذراً، لم يتم العثور على الفاتورة رقم ("+ cleanInvoiceNumber +") في السحاب."); return; }
+                if (!invoices || invoices.length === 0) { alert("🛑 عذراً، لم يتم العثور على الفاتورة في السحاب."); return; }
                 const inv = invoices[0];
                 const rem = inv.total_amount - inv.paid_amount;
                 document.getElementById('viewName').innerText = inv.customers ? inv.customers.name : "-";
@@ -274,26 +357,80 @@
             } catch (err) { console.error(err); }
         }
 
-        async function saveInvoiceToSupabase() {
+        // دالة الحفظ أو التعديل المشتركة حسب حالة التطبيق الحالية
+        async function handleFormSubmit() {
             if (!supabaseClient) return;
+            
+            const editId = document.getElementById('editInvoiceId').value;
+            const isEditMode = editId !== "";
             const btn = document.getElementById('btnSave');
-            btn.innerText = "جاري الحفظ بالسحاب... ⏳"; btn.disabled = true;
+            
+            btn.innerText = isEditMode ? "جاري تحديث البيانات... ⏳" : "جاري الحفظ بالسحاب... ⏳";
+            btn.disabled = true;
+
             const name = document.getElementById('inputName').value.trim();
             const phone = document.getElementById('inputPhone').value.trim();
             const invId = document.getElementById('inputInvId').value;
             const eventDate = document.getElementById('inputEventDate').value;
             const desc = document.getElementById('inputDesc').value;
-            if (!name || !phone) { alert("تنبيه: يرجى كتابة الاسم والهاتف أولاً."); btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; return; }
+            
+            if (!name || !phone) { 
+                alert("تنبيه: يرجى كتابة الاسم والهاتف أولاً."); 
+                btn.innerText = isEditMode ? "تحديث الفاتورة الحالية 🔄" : "حفظ الفاتورة في السحاب 💾";
+                btn.disabled = false; 
+                return; 
+            }
+
             const rate = parseFloat(document.getElementById('inputRate').value) || 0;
             const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
             const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
             const total = rate + insurance;
+            const statusStr = (total - paid <= 0) ? 'paid' : 'unpaid';
+
             try {
+                // إدخال أو تحديث العميل بناء على رقم الهاتف الفريد
                 let { data: cust } = await supabaseClient.from('customers').upsert({ name, phone }, { onConflict: 'phone' }).select().single();
-                let { data: inv } = await supabaseClient.from('invoices').insert({ customer_id: cust.id, invoice_number: invId, event_date: eventDate, insurance_amount: insurance, subtotal_amount: rate, total_amount: total, paid_amount: paid, status: (total - paid <= 0) ? 'paid' : 'unpaid' }).select().single();
-                await supabaseClient.from('invoice_items').insert({ invoice_id: inv.id, item_description: desc, rate, quantity: 1, amount: rate });
-                alert("🎉 تم حفظ الفاتورة وإدراجها بنجاح!"); setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData(true);
-            } catch (err) { alert(err.message); } finally { btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; }
+                
+                if (isEditMode) {
+                    // فرع تحديث الفاتورة الحالية (UPDATE)
+                    await supabaseClient.from('invoices').update({
+                        customer_id: cust.id,
+                        event_date: eventDate,
+                        insurance_amount: insurance,
+                        subtotal_amount: rate,
+                        total_amount: total,
+                        paid_amount: paid,
+                        status: statusStr
+                    }).eq('id', editId);
+
+                    // تحديث عناصر الفاتورة التابعة
+                    const currentInvObj = localInvoicesCache.find(i => i.id === editId);
+                    const itemId = currentInvObj?.invoice_items?.[0]?.id;
+                    if (itemId) {
+                        await supabaseClient.from('invoice_items').update({ item_description: desc, rate, amount: rate }).eq('id', itemId);
+                    } else {
+                        await supabaseClient.from('invoice_items').insert({ invoice_id: editId, item_description: desc, rate, quantity: 1, amount: rate });
+                    }
+                    
+                    alert("🎉 تم تحديث بيانات الفاتورة بنجاح في السحاب!");
+                    cancelEditMode();
+                } else {
+                    // فرع إنشاء فاتورة جديدة (INSERT)
+                    let { data: inv } = await supabaseClient.from('invoices').insert({ customer_id: cust.id, invoice_number: invId, event_date: eventDate, insurance_amount: insurance, subtotal_amount: rate, total_amount: total, paid_amount: paid, status: statusStr }).select().single();
+                    await supabaseClient.from('invoice_items').insert({ invoice_id: inv.id, item_description: desc, rate, quantity: 1, amount: rate });
+                    
+                    alert("🎉 تم حفظ الفاتورة الجديدة وإدراجها بنجاح!");
+                    setAutomaticInvoiceId();
+                }
+
+                updateInvoicePreview(); 
+                fetchDashboardData(true);
+            } catch (err) { alert(`🛑 خطأ: ${err.message}`); } finally { 
+                btn.disabled = false; 
+                if (document.getElementById('editInvoiceId').value === "") {
+                    btn.innerText = "حفظ الفاتورة في السحاب 💾";
+                }
+            }
         }
 
         function sendWhatsAppWithPDF() {
@@ -328,7 +465,8 @@
             } else {
                 setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
                 document.getElementById('invoiceForm').addEventListener('input', updateInvoicePreview);
-                document.getElementById('btnSave').addEventListener('click', saveInvoiceToSupabase);
+                document.getElementById('btnSave').addEventListener('click', handleFormSubmit);
+                document.getElementById('btnCancelEdit').addEventListener('click', cancelEditMode);
                 document.getElementById('btnWhatsApp').addEventListener('click', sendWhatsAppWithPDF);
                 document.getElementById('btnPrint').addEventListener('click', () => window.print());
             }
