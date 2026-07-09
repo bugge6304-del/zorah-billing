@@ -247,4 +247,86 @@
                 if (error) throw error;
 
                 if (!invoices || invoices.length === 0) { 
-                    alert("🛑 عذراً، لم يتم العثور على الفاتورة رقم ("
+                    alert("🛑 عذراً، لم يتم العثور على الفاتورة رقم ("+ cleanInvoiceNumber +") في السحاب. تأكد من حفظها أولاً!"); 
+                    return; 
+                }
+
+                const inv = invoices[0];
+                const rem = inv.total_amount - inv.paid_amount;
+                document.getElementById('viewName').innerText = inv.customers ? inv.customers.name : "-";
+                document.getElementById('viewPhone').innerText = inv.customers ? inv.customers.phone : "-";
+                document.getElementById('viewInvId').innerText = inv.invoice_number;
+                document.getElementById('viewEventDate').innerText = inv.event_date || "-";
+                document.getElementById('viewDesc').innerText = inv.invoice_items?.[0]?.item_description || "تأجير مستلزمات";
+                document.getElementById('viewRateTable').innerText = (inv.invoice_items?.[0]?.rate || inv.subtotal_amount).toFixed(3) + " ر.ع";
+                document.getElementById('viewAmountTable').innerText = (inv.invoice_items?.[0]?.rate || inv.subtotal_amount).toFixed(3) + " ر.ع";
+                document.getElementById('viewSubtotal').innerText = inv.subtotal_amount.toFixed(3) + " ر.ع";
+                document.getElementById('viewInsurance').innerText = inv.insurance_amount.toFixed(3) + " ر.ع";
+                document.getElementById('viewTotal').innerText = inv.total_amount.toFixed(3) + " ر.ع";
+                document.getElementById('viewPaid').innerText = inv.paid_amount.toFixed(3) + " ر.ع";
+                document.getElementById('viewRemaining').innerText = rem.toFixed(3) + " ر.ع";
+            } catch (err) { console.error(err); alert("حدث خطأ أثناء جلب الفاتورة: " + err.message); }
+        }
+
+        async function saveInvoiceToSupabase() {
+            if (!supabaseClient) return;
+            const btn = document.getElementById('btnSave');
+            btn.innerText = "جاري الحفظ... ⏳"; btn.disabled = true;
+            const name = document.getElementById('inputName').value.trim();
+            const phone = document.getElementById('inputPhone').value.trim();
+            const invId = document.getElementById('inputInvId').value;
+            const eventDate = document.getElementById('inputEventDate').value;
+            const desc = document.getElementById('inputDesc').value;
+            if (!name || !phone) { alert("أدخل الاسم والهاتف."); btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; return; }
+            const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+            const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+            const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+            const total = rate + insurance;
+            try {
+                let { data: cust } = await supabaseClient.from('customers').upsert({ name, phone }, { onConflict: 'phone' }).select().single();
+                let { data: inv } = await supabaseClient.from('invoices').insert({ customer_id: cust.id, invoice_number: invId, event_date: eventDate, insurance_amount: insurance, subtotal_amount: rate, total_amount: total, paid_amount: paid, status: (total - paid <= 0) ? 'paid' : 'unpaid' }).select().single();
+                await supabaseClient.from('invoice_items').insert({ invoice_id: inv.id, item_description: desc, rate, quantity: 1, amount: rate });
+                alert("🎉 تم حفظ الفاتورة بنجاح في السحاب!"); setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
+            } catch (err) { alert(err.message); } finally { btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; }
+        }
+
+        function sendWhatsAppWithPDF() {
+            const phone = document.getElementById('inputPhone').value.trim();
+            const name = document.getElementById('inputName').value;
+            const invId = document.getElementById('inputInvId').value;
+            const eventDate = document.getElementById('inputEventDate').value;
+            const rem = (parseFloat(document.getElementById('inputRate').value || 0) + parseFloat(document.getElementById('inputInsurance').value || 0) - parseFloat(document.getElementById('inputPaid').value || 0)).toFixed(3);
+            if (!phone) { alert("أدخل رقم العميل."); return; }
+            const url = `https://bugge6304-del.github.io/zorah-billing/?inv=${encodeURIComponent(invId)}`;
+            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجزكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المتبقي المستحق: ${rem} ر.ع.\n\n📄 لمعاينة الفاتورة وحفظها PDF اضغط الرابط:\n${url}\n\nشكراً لكم 🤍`;
+            window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+        }
+
+        function quickWhatsApp(phone, name, invId, eventDate, remaining) {
+            const url = `https://bugge6304-del.github.io/zorah-billing/?inv=${encodeURIComponent(invId)}`;
+            const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتذكير بفاتورة حجزكم رقم: ${invId}.\n💰 المتبقي المستحق: ${remaining} ر.ع.\n\n📄 لمعاينة الفاتورة PDF:\n${url}`;
+            window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+        }
+
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('inv')) {
+                document.getElementById('controlPanel').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'none';
+                document.getElementById('dashboardPanel').style.display = 'none';
+                document.getElementById('previewPanel').className = "lg:col-span-12 max-w-3xl mx-auto w-full";
+                const btnCust = document.getElementById('btnCustomerPrint');
+                btnCust.style.display = 'flex'; btnCust.addEventListener('click', () => window.print());
+                fetchSingleInvoiceForCustomer(urlParams.get('inv'));
+            } else {
+                setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
+                document.getElementById('invoiceForm').addEventListener('input', updateInvoicePreview);
+                document.getElementById('btnSave').addEventListener('click', saveInvoiceToSupabase);
+                document.getElementById('btnRefreshDash').addEventListener('click', fetchDashboardData);
+                document.getElementById('btnWhatsApp').addEventListener('click', sendWhatsAppWithPDF);
+                document.getElementById('btnPrint').addEventListener('click', () => window.print());
+            }
+        });
+    </script>
+</body>
+</html>
