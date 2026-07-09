@@ -32,7 +32,6 @@ function setAutomaticInvoiceId() {
 // دالة تحديث المعاينة الحية للفاتورة أثناء كتابة البيانات
 function updateInvoicePreview() {
     try {
-        // التحقق من أننا لسنا في وضع العميل (عرض الفاتورة الفردية) قبل السحب
         if (new URLSearchParams(window.location.search).has('inv')) return;
 
         const name = document.getElementById('inputName')?.value || "";
@@ -162,7 +161,6 @@ async function fetchSingleInvoiceForCustomer(invoiceNumber) {
         const itemRate = inv.invoice_items && inv.invoice_items[0] ? inv.invoice_items[0].rate : inv.subtotal_amount;
         const remaining = inv.total_amount - inv.paid_amount;
 
-        // وضع البيانات داخل واجهة الفاتورة للعميل
         document.getElementById('viewName').innerText = custName;
         document.getElementById('viewPhone').innerText = custPhone;
         document.getElementById('viewInvId').innerText = inv.invoice_number;
@@ -211,7 +209,6 @@ async function saveInvoiceToSupabase() {
     const remaining = total - paid;
 
     try {
-        // 1. إدخال أو تحديث بيانات العميل بناءً على رقم هاتفه الفريد
         let { data: customer, error: custError } = await supabaseClient
             .from('customers')
             .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
@@ -220,7 +217,6 @@ async function saveInvoiceToSupabase() {
 
         if (custError) throw new Error(`بيانات العميل: ${custError.message}`);
 
-        // 2. إدخال رأس الفاتورة في جدول الفواتير
         const { data: invoice, error: invError } = await supabaseClient
             .from('invoices')
             .insert({
@@ -238,7 +234,6 @@ async function saveInvoiceToSupabase() {
 
         if (invError) throw new Error(`جدول الفواتير الرئيسي: ${invError.message}`);
 
-        // 3. إدخال عناصر الفاتورة
         const { error: itemError } = await supabaseClient
             .from('invoice_items')
             .insert({
@@ -278,7 +273,6 @@ function sendWhatsAppWithPDF() {
         
         if (!phone) { alert("⚠️ تنبيه: يرجى إدخال رقم واتساب العميل أولاً."); return; }
 
-        // رابط الفاتورة الديناميكي الخاص بموقعك على جيت هاب مرسل معه الرقم كـ Parameter
         const invoiceUrl = `https://bugge6304-del.github.io/zorah-billing/?inv=${invId}`;
 
         const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\n📄 لمشاهدة الفاتورة الرسمية وتحميلها بصيغة PDF اضغط على الرابط التالي:\n${invoiceUrl}\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
@@ -306,37 +300,30 @@ function checkRouteAndRole() {
     if (urlParams.has('inv')) {
         const targetInvNumber = urlParams.get('inv');
         
-        // 1. إخفاء لوحات التحكم والأزرار والداشبورد بالكامل لحماية خصوصيتك وعرض الفاتورة فقط للعميل
         if(document.getElementById('controlPanel')) document.getElementById('controlPanel').style.display = 'none';
         if(document.getElementById('actionButtons')) document.getElementById('actionButtons').style.display = 'none';
         if(document.getElementById('dashboardPanel')) document.getElementById('dashboardPanel').style.display = 'none';
         
-        // تعديل حجم الحاوية للفاتورة لتتوسط الصفحة
         const previewPanel = document.getElementById('previewPanel');
         if(previewPanel) {
             previewPanel.className = "lg:col-span-12 max-w-3xl mx-auto w-full";
         }
         
-        // 2. إظهار زر الطباعة والحفظ المبسط والمخصص للعميل
         const btnCustomerPrint = document.getElementById('btnCustomerPrint');
         if(btnCustomerPrint) {
             btnCustomerPrint.style.display = 'flex';
             btnCustomerPrint.addEventListener('click', () => { window.print(); });
         }
         
-        // 3. استدعاء بيانات هذه الفاتورة الفردية المحددة للعميل فوراً من سوبابيز
         fetchSingleInvoiceForCustomer(targetInvNumber);
     } else {
-        // في حال دخولك أنت للموقع بدون Parameter، يتم تفعيل النظام الافتراضي ولوحة التحكم والداشبورد
         setAutomaticInvoiceId();
         updateInvoicePreview();
         fetchDashboardData();
 
-        // ربط أحداث تغيير المدخلات بالمعاينة الحية
         const invoiceForm = document.getElementById('invoiceForm');
         if (invoiceForm) invoiceForm.addEventListener('input', updateInvoicePreview);
 
-        // ربط أزرار الإدارة بأفعالها البرمجية
         const btnSave = document.getElementById('btnSave');
         if (btnSave) btnSave.addEventListener('click', saveInvoiceToSupabase);
 
@@ -355,7 +342,7 @@ function checkRouteAndRole() {
     }
 }
 
-// دالة البدء والتشغيل الأمن بعد تحميل الصفحة وعناصرها بشكل صلب
+// استخدام الـ Load المباشر والمستقر لضمان التزامن
 window.addEventListener('load', () => {
     if (!supabaseClient && typeof supabase !== 'undefined') {
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
