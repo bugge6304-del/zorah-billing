@@ -1,4 +1,4 @@
-// إعداد الاتصال بـ Supabase
+// إعداد الاتصال بقاعدة بيانات سوبابيز الخاصة بمتجر زورة
 const SUPABASE_URL = "https://nbgqoggilutczmzqxydp.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_T1PrZFkblKRTY5GfLoNjMQ_dM5hGAOF";
 
@@ -7,34 +7,34 @@ try {
     if (typeof supabase !== 'undefined') {
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else {
-        console.error("🛑 مكتبة Supabase لم يتم تحميلها بعد.");
+        console.error("🛑 خطأ: لم يتم تحميل مكتبة سوبابيز الأساسية في المتصفح.");
     }
 } catch(e) {
-    console.error("❌ خطأ في تشغيل مكتبة سوبابيز: ", e);
+    console.error("❌ خطأ مباغت أثناء تهيئة سوبابيز: ", e);
 }
 
-// دالة توليد رقم الفاتورة تلقائياً - معدلة لتشمل الثواني لمنع التكرار تماماً
+// دالة توليد رقم الفاتورة تلقائياً بدقة تمنع التكرار (Unique Constraint)
 function setAutomaticInvoiceId() {
     try {
         const now = new Date();
         const year = now.getFullYear().toString().slice(-2); 
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        const timestamp = now.getTime().toString().slice(-4); // استخدام آخر 4 أرقام من الوقت بدقة الملي ثانية
+        const timestamp = now.getTime().toString().slice(-4); // جلب ملي ثواني لمنع التكرار الجذري
         const autoId = `INV-${year}${month}-${timestamp}`;
         
-        const inputInvId = document.getElementById('inputInvId');
-        const viewInvId = document.getElementById('viewInvId');
-        
-        if(inputInvId) inputInvId.value = autoId;
-        if(viewInvId) viewInvId.innerText = autoId;
+        if(document.getElementById('inputInvId')) document.getElementById('inputInvId').value = autoId;
+        if(document.getElementById('viewInvId')) document.getElementById('viewInvId').innerText = autoId;
     } catch (err) {
-        console.error("❌ خطأ أثناء توليد رقم الفاتورة:", err);
+        console.error("❌ خطأ أثناء توليد رقم الفاتورة التلقائي:", err);
     }
 }
 
-// دالة تحديث المعاينة الحية للفاتورة
+// دالة تحديث المعاينة الحية للفاتورة أثناء كتابة البيانات
 function updateInvoicePreview() {
     try {
+        // التحقق من أننا لسنا في وضع العميل (عرض الفاتورة الفردية) قبل السحب
+        if (new URLSearchParams(window.location.search).has('inv')) return;
+
         const name = document.getElementById('inputName')?.value || "";
         const phone = document.getElementById('inputPhone')?.value || "";
         const invId = document.getElementById('inputInvId')?.value || "";
@@ -66,9 +66,9 @@ function updateInvoicePreview() {
     }
 }
 
-// جلب بيانات لوحة التحكم
+// دالة جلب البيانات وعرضها في الإحصائيات وجدول الإدارة
 async function fetchDashboardData() {
-    if (!supabaseClient) return;
+    if (!supabaseClient || new URLSearchParams(window.location.search).has('inv')) return;
     try {
         let { data: invoices, error } = await supabaseClient
             .from('invoices')
@@ -85,7 +85,7 @@ async function fetchDashboardData() {
         if (!tbody) return;
 
         if (!invoices || invoices.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير مسجلة حتى الآن في النظام 📥</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">لا توجد فواتير مسجلة حالياً 📥</td></tr>`;
             return;
         }
 
@@ -134,18 +134,63 @@ async function fetchDashboardData() {
     }
 }
 
-// دالة حفظ الفاتورة
+// دالة جلب بيانات فاتورة عميل منفردة وعرضها (لوضع العميل PDF المباشر)
+async function fetchSingleInvoiceForCustomer(invoiceNumber) {
+    if (!supabaseClient) return;
+    try {
+        let { data: invoices, error } = await supabaseClient
+            .from('invoices')
+            .select(`
+                id, invoice_number, event_date, insurance_amount, 
+                subtotal_amount, total_amount, paid_amount,
+                customers ( name, phone ),
+                invoice_items ( item_description, rate, amount )
+            `)
+            .eq('invoice_number', invoiceNumber);
+
+        if (error) throw error;
+
+        if (!invoices || invoices.length === 0) {
+            alert("🛑 تنبيه: عذراً، لم يتم العثور على الفاتورة المطلوبة بالنظام.");
+            return;
+        }
+
+        const inv = invoices[0];
+        const custName = inv.customers ? inv.customers.name : "-";
+        const custPhone = inv.customers ? inv.customers.phone : "-";
+        const itemDesc = inv.invoice_items && inv.invoice_items[0] ? inv.invoice_items[0].item_description : "تأجير مستلزمات زورة";
+        const itemRate = inv.invoice_items && inv.invoice_items[0] ? inv.invoice_items[0].rate : inv.subtotal_amount;
+        const remaining = inv.total_amount - inv.paid_amount;
+
+        // وضع البيانات داخل واجهة الفاتورة للعميل
+        document.getElementById('viewName').innerText = custName;
+        document.getElementById('viewPhone').innerText = custPhone;
+        document.getElementById('viewInvId').innerText = inv.invoice_number;
+        document.getElementById('viewEventDate').innerText = inv.event_date || "-";
+        document.getElementById('viewDesc').innerText = itemDesc;
+        
+        document.getElementById('viewRateTable').innerText = itemRate.toFixed(3) + " ر.ع";
+        document.getElementById('viewAmountTable').innerText = itemRate.toFixed(3) + " ر.ع";
+        document.getElementById('viewSubtotal').innerText = inv.subtotal_amount.toFixed(3) + " ر.ع";
+        document.getElementById('viewInsurance').innerText = inv.insurance_amount.toFixed(3) + " ر.ع";
+        document.getElementById('viewTotal').innerText = inv.total_amount.toFixed(3) + " ر.ع";
+        document.getElementById('viewPaid').innerText = inv.paid_amount.toFixed(3) + " ر.ع";
+        document.getElementById('viewRemaining').innerText = remaining.toFixed(3) + " ر.ع";
+
+    } catch (err) {
+        console.error("❌ خطأ في جلب الفاتورة الفردية للعميل:", err);
+    }
+}
+
+// دالة حفظ الفاتورة الجديدة بالكامل في السحاب والـ Database
 async function saveInvoiceToSupabase() {
     if (!supabaseClient) {
-        alert("🛑 خطأ: اتصال قاعدة البيانات مقطوع!");
+        alert("🛑 خطأ: لا يمكن إتمام العملية لعدم وجود اتصال نشط بسوبابيز!");
         return;
     }
 
     const btn = document.getElementById('btnSave');
-    if(btn) {
-        btn.innerText = "جاري الحفظ... ⏳";
-        btn.disabled = true;
-    }
+    if(btn) { btn.innerText = "جاري الحفظ بالسحاب... ⏳"; btn.disabled = true; }
 
     const name = document.getElementById('inputName').value.trim();
     const phone = document.getElementById('inputPhone').value.trim();
@@ -154,11 +199,8 @@ async function saveInvoiceToSupabase() {
     const desc = document.getElementById('inputDesc').value;
     
     if (!name || !phone) {
-        alert("⚠️ خطأ: يرجى كتابة اسم العميل ورقم الهاتف أولاً.");
-        if(btn) {
-            btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
-            btn.disabled = false;
-        }
+        alert("⚠️ خطأ في الإدخال: يرجى تعبئة اسم ورقم هاتف العميل أولاً لحفظ الفاتورة.");
+        if(btn) { btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; }
         return;
     }
 
@@ -169,6 +211,7 @@ async function saveInvoiceToSupabase() {
     const remaining = total - paid;
 
     try {
+        // 1. إدخال أو تحديث بيانات العميل بناءً على رقم هاتفه الفريد
         let { data: customer, error: custError } = await supabaseClient
             .from('customers')
             .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
@@ -177,6 +220,7 @@ async function saveInvoiceToSupabase() {
 
         if (custError) throw new Error(`بيانات العميل: ${custError.message}`);
 
+        // 2. إدخال رأس الفاتورة في جدول الفواتير
         const { data: invoice, error: invError } = await supabaseClient
             .from('invoices')
             .insert({
@@ -192,8 +236,9 @@ async function saveInvoiceToSupabase() {
             .select()
             .single();
 
-        if (invError) throw new Error(`جدول الفواتير: ${invError.message}`);
+        if (invError) throw new Error(`جدول الفواتير الرئيسي: ${invError.message}`);
 
+        // 3. إدخال عناصر الفاتورة
         const { error: itemError } = await supabaseClient
             .from('invoice_items')
             .insert({
@@ -204,85 +249,116 @@ async function saveInvoiceToSupabase() {
                 amount: rate
             });
 
-        if (itemError) throw new Error(`تفاصيل العناصر: ${itemError.message}`);
+        if (itemError) throw new Error(`تفاصيل عناصر الفاتورة: ${itemError.message}`);
 
-        alert(`🎉 تم حفظ الفاتورة ${invId} بنجاح.`);
+        alert(`🎉 ممتاز! تم حفظ الفاتورة رقم ${invId} بنجاح في قاعدة البيانات.`);
         setAutomaticInvoiceId();
         updateInvoicePreview();
         fetchDashboardData();
 
     } catch (err) {
-        console.error("❌ خطأ في الحفظ:", err);
-        alert(`🛑 حدث خطأ أثناء الحفظ:\n${err.message}`);
+        console.error("❌ خطأ شامل في عملية الحفظ بسوبابيز:", err);
+        alert(`🛑 حدث خطأ في النظام السحابي:\n${err.message}`);
     } finally {
-        if(btn) {
-            btn.innerText = "حفظ الفاتورة في قاعدة البيانات 💾";
-            btn.disabled = false;
+        if(btn) { btn.innerText = "حفظ الفاتورة في السحاب 💾"; btn.disabled = false; }
+    }
+}
+
+// دالة إرسال الفاتورة مع رابط الـ PDF للعميل عبر الواتساب (الزر الرئيسي)
+function sendWhatsAppWithPDF() {
+    try {
+        const phone = document.getElementById('inputPhone').value.trim();
+        const name = document.getElementById('inputName').value;
+        const invId = document.getElementById('inputInvId').value;
+        const eventDate = document.getElementById('inputEventDate').value;
+        const rate = parseFloat(document.getElementById('inputRate').value) || 0;
+        const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
+        const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+        const remaining = (rate + insurance - paid).toFixed(3);
+        
+        if (!phone) { alert("⚠️ تنبيه: يرجى إدخال رقم واتساب العميل أولاً."); return; }
+
+        // رابط الفاتورة الديناميكي الخاص بموقعك على جيت هاب مرسل معه الرقم كـ Parameter
+        const invoiceUrl = `https://bugge6304-del.github.io/zorah-billing/?inv=${invId}`;
+
+        const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\n📄 لمشاهدة الفاتورة الرسمية وتحميلها بصيغة PDF اضغط على الرابط التالي:\n${invoiceUrl}\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
+        
+        window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+    } catch (err) { alert(`🛑 فشل فتح تطبيق الواتساب: ${err.message}`); }
+}
+
+// دالة إرسال التنبيهات بالواتساب السريع المباشر من جدول الإحصائيات الداشبورد
+function quickWhatsApp(phone, name, invId, eventDate, remaining) {
+    try {
+        if (!phone) { alert("رقم الهاتف غير متوفر للعميل."); return; }
+        
+        const invoiceUrl = `https://bugge6304-del.github.io/zorah-billing/?inv=${invId}`;
+        
+        const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nنذكركم بفاتورة حجزكم رقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\n📄 لمعاينة وتحميل الفاتورة الرسمية بصيغة PDF:\n${invoiceUrl}\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
+        window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+    } catch (err) { alert("فشل فتح الواتساب السريع: " + err.message); }
+}
+
+// دالة فحص الروابط (URL Parameters) والتحقق من وضع الزائر أو العميل
+function checkRouteAndRole() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.has('inv')) {
+        const targetInvNumber = urlParams.get('inv');
+        
+        // 1. إخفاء لوحات التحكم والأزرار والداشبورد بالكامل لحماية خصوصيتك وعرض الفاتورة فقط للعميل
+        if(document.getElementById('controlPanel')) document.getElementById('controlPanel').style.display = 'none';
+        if(document.getElementById('actionButtons')) document.getElementById('actionButtons').style.display = 'none';
+        if(document.getElementById('dashboardPanel')) document.getElementById('dashboardPanel').style.display = 'none';
+        
+        // تعديل حجم الحاوية للفاتورة لتتوسط الصفحة
+        const previewPanel = document.getElementById('previewPanel');
+        if(previewPanel) {
+            previewPanel.className = "lg:col-span-12 max-w-3xl mx-auto w-full";
+        }
+        
+        // 2. إظهار زر الطباعة والحفظ المبسط والمخصص للعميل
+        const btnCustomerPrint = document.getElementById('btnCustomerPrint');
+        if(btnCustomerPrint) {
+            btnCustomerPrint.style.display = 'flex';
+            btnCustomerPrint.addEventListener('click', () => { window.print(); });
+        }
+        
+        // 3. استدعاء بيانات هذه الفاتورة الفردية المحددة للعميل فوراً من سوبابيز
+        fetchSingleInvoiceForCustomer(targetInvNumber);
+    } else {
+        // في حال دخولك أنت للموقع بدون Parameter، يتم تفعيل النظام الافتراضي ولوحة التحكم والداشبورد
+        setAutomaticInvoiceId();
+        updateInvoicePreview();
+        fetchDashboardData();
+
+        // ربط أحداث تغيير المدخلات بالمعاينة الحية
+        const invoiceForm = document.getElementById('invoiceForm');
+        if (invoiceForm) invoiceForm.addEventListener('input', updateInvoicePreview);
+
+        // ربط أزرار الإدارة بأفعالها البرمجية
+        const btnSave = document.getElementById('btnSave');
+        if (btnSave) btnSave.addEventListener('click', saveInvoiceToSupabase);
+
+        const btnRefreshDash = document.getElementById('btnRefreshDash');
+        if (btnRefreshDash) btnRefreshDash.addEventListener('click', fetchDashboardData);
+
+        const btnWhatsApp = document.getElementById('btnWhatsApp');
+        if (btnWhatsApp) btnWhatsApp.addEventListener('click', sendWhatsAppWithPDF);
+        
+        const btnPrint = document.getElementById('btnPrint');
+        if (btnPrint) {
+            btnPrint.addEventListener('click', () => {
+                try { window.print(); } catch (err) { alert(`🛑 فشل فتح نافذة الطباعة: ${err.message}`); }
+            });
         }
     }
 }
 
-function quickWhatsApp(phone, name, invId, eventDate, remaining) {
-    try {
-        if (!phone) { alert("رقم الهاتف غير متوفر."); return; }
-        const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nنذكركم بفاتورة حجزكم رقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
-        window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
-    } catch (err) {
-        alert("فشل الواتساب: " + err.message);
-    }
-}
-
-// دالة التشغيل الآمنة بعد تحميل شجرة DOM
-function initializeApp() {
-    setAutomaticInvoiceId();
-    updateInvoicePreview();
-    fetchDashboardData();
-
-    const invoiceForm = document.getElementById('invoiceForm');
-    if (invoiceForm) {
-        invoiceForm.addEventListener('input', updateInvoicePreview);
-    }
-
-    const btnSave = document.getElementById('btnSave');
-    if (btnSave) btnSave.addEventListener('click', saveInvoiceToSupabase);
-
-    const btnRefreshDash = document.getElementById('btnRefreshDash');
-    if (btnRefreshDash) btnRefreshDash.addEventListener('click', fetchDashboardData);
-    
-    const btnPrint = document.getElementById('btnPrint');
-    if (btnPrint) {
-        btnPrint.addEventListener('click', () => {
-            try { window.print(); } catch (err) { alert(`🛑 فشل الطباعة: ${err.message}`); }
-        });
-    }
-
-    const btnWhatsApp = document.getElementById('btnWhatsApp');
-    if (btnWhatsApp) {
-        btnWhatsApp.addEventListener('click', () => {
-            try {
-                const phone = document.getElementById('inputPhone').value.trim();
-                const name = document.getElementById('inputName').value;
-                const invId = document.getElementById('inputInvId').value;
-                const eventDate = document.getElementById('inputEventDate').value;
-                const rate = parseFloat(document.getElementById('inputRate').value) || 0;
-                const insurance = parseFloat(document.getElementById('inputInsurance').value) || 0;
-                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-                const remaining = (rate + insurance - paid).toFixed(3);
-                
-                if (!phone) { alert("⚠️ يرجى إدخال رقم واتساب العميل."); return; }
-
-                const text = `مرحباً بك أخي ${name} في متجر زورة ✨\n\nتم إصدار فاتورة حجز مستلزمات الحفلة الخاصة بكم برقم: ${invId}.\n📅 تاريخ المناسبة: ${eventDate}\n💰 المبلغ المتبقي المستحق هو: ${remaining} ر.ع.\n\nنشكر اختياركم لمتجر زورة وثقتكم بنا 🤍`;
-                window.location.href = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
-            } catch (err) { alert(`🛑 فشل الواتساب: ${err.message}`); }
-        });
-    }
-}
-
-// ننتظر تحميل السكريبتات بالكامل للتأكد من وجود مكتبة سوبابيز في الذاكرة
+// دالة البدء والتشغيل الأمن بعد تحميل الصفحة وعناصرها بشكل صلب
 window.addEventListener('load', () => {
-    // إعادة محاولة الربط في حال تأخرت مكتبة سوبابيز الأصلية في التحميل
     if (!supabaseClient && typeof supabase !== 'undefined') {
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-    initializeApp();
+    checkRouteAndRole();
 });
