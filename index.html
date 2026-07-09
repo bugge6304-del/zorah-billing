@@ -34,11 +34,11 @@
             <form id="invoiceForm" class="space-y-4" onsubmit="return false;">
                 <div>
                     <label class="block text-xs font-bold mb-1">اسم العميل:</label>
-                    <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
+                    <input type="text" id="inputName" value="سعيد" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">
                 </div>
                 <div>
                     <label class="block text-xs font-bold mb-1">رقم الواتساب (مع رمز الدولة وبدون +):</label>
-                    <input type="text" id="inputPhone" value="96896379225" placeholder="968xxxxxxx" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
+                    <input type="text" id="inputPhone" value="96896379225" placeholder="968xxxxxxx" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -47,28 +47,28 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1">تاريخ الحفل:</label>
-                        <input type="date" id="inputEventDate" value="2026-08-15" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
+                        <input type="date" id="inputEventDate" value="2026-08-15" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold mb-1">وصف الحجز / الثيم:</label>
-                    <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
+                    <textarea id="inputDesc" rows="2" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">تأجير ثيم متكامل لمناسبة حول حول (شامل التنسيق)</textarea>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-xs font-bold mb-1">سعر الإيجار:</label>
-                        <input type="number" id="inputRate" value="210" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
+                        <input type="number" id="inputRate" value="210" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1">التأمين:</label>
-                        <input type="number" id="inputInsurance" value="20" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
+                        <input type="number" id="inputInsurance" value="20" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1">المقدم المدفوع:</label>
-                        <input type="number" id="inputPaid" value="50" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21]">
+                        <input type="number" id="inputPaid" value="50" class="w-full p-2 border border-[#EFEAE2] rounded bg-[#FDFBF7] text-sm focus:outline-none focus:border-[#5C3A21] transition-all">
                     </div>
                 </div>
-                <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] cursor-pointer mt-4 shadow-sm text-sm transition">
+                <button type="button" id="btnSave" class="w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold hover:bg-[#4a2e1a] active:scale-[0.98] transition-all duration-200 cursor-pointer mt-4 shadow-sm text-sm border-b-4 border-[#3e2614]">
                     حفظ الفاتورة في السحاب 💾
                 </button>
             </form>
@@ -76,8 +76,8 @@
 
         <div id="previewPanel" class="lg:col-span-7 space-y-4 w-full">
             <div id="actionButtons" class="flex justify-end gap-2">
-                <button id="btnPrint" class="bg-[#8C7662] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm cursor-pointer transition hover:bg-[#75614f]">طباعة / تحميل PDF 📄</button>
-                <button id="btnWhatsApp" class="bg-[#25D366] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm cursor-pointer transition hover:bg-[#20ba5a]">إرسال واتساب للعميل 💬</button>
+                <button id="btnPrint" class="bg-[#8C7662] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm cursor-pointer transition-all duration-200 hover:bg-[#75614f] active:scale-95 border-b-2 border-[#5e4f42]">طباعة / تحميل PDF 📄</button>
+                <button id="btnWhatsApp" class="bg-[#25D366] text-white px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm cursor-pointer transition-all duration-200 hover:bg-[#1ebd54] active:scale-95 border-b-2 border-[#168a3d]">إرسال واتساب للعميل 💬</button>
             </div>
 
             <div id="invoice" class="bg-white p-5 sm:p-6 md:p-8 rounded-xl border border-[#EFEAE2] shadow-sm w-full">
@@ -154,16 +154,13 @@
                 </div>
 
             </div>
-            <button id="btnCustomerPrint" class="hidden w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold text-sm shadow justify-center items-center gap-2 mt-4 cursor-pointer">حفظ الفاتورة كـ PDF وعرضها للطباعة 📄</button>
+            <button id="btnCustomerPrint" class="hidden w-full bg-[#5C3A21] text-white p-3 rounded-lg font-bold text-sm shadow justify-center items-center gap-2 mt-4 cursor-pointer transition-all duration-200 hover:bg-[#4a2e1a] active:scale-[0.98] border-b-4 border-[#3e2614]">حفظ الفاتورة كـ PDF وعرضها للطباعة 📄</button>
         </div>
     </div>
 
     <div id="dashboardPanel" class="max-w-7xl mx-auto bg-white p-5 md:p-6 rounded-xl border border-[#EFEAE2] shadow-sm space-y-6 w-full">
-        <div class="flex justify-between items-center border-b border-[#EFEAE2] pb-4">
-            <div>
-                <h2 class="text-lg md:text-xl font-bold flex items-center gap-2"><span>📊</span> لوحة تحكم وإحصائيات المتجر</h2>
-            </div>
-            <button id="btnRefreshDash" class="bg-[#5C3A21] text-white px-3 py-1.5 rounded-lg font-bold text-xs cursor-pointer transition hover:bg-[#4a2e1a]">تحديث البيانات 🔄</button>
+        <div class="border-b border-[#EFEAE2] pb-4">
+            <h2 class="text-lg md:text-xl font-bold flex items-center gap-2"><span>📊</span> لوحة تحكم وإحصائيات المتجر (محدثة تلقائياً)</h2>
         </div>
         
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -226,13 +223,10 @@
 
         async function fetchDashboardData(isManualRefresh = false) {
             if (!supabaseClient) return;
-            // التحقق من جلب البيانات يدوياً لكسر شرط الحماية إذا تم الضغط على الزر
             if (!isManualRefresh && new URLSearchParams(window.location.search).has('inv')) return;
             
             try {
                 const tbody = document.getElementById('dashboardTableBody');
-                if (tbody && isManualRefresh) tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#8C7662]">جاري تحديث البيانات الآن... 🔄</td></tr>`;
-
                 let { data: invoices, error } = await supabaseClient.from('invoices').select('id, invoice_number, event_date, insurance_amount, subtotal_amount, total_amount, paid_amount, status, customers ( name, phone )').order('created_at', { ascending: false });
                 if (error) throw error;
                 if (!tbody) return;
@@ -246,7 +240,7 @@
                     const rem = inv.total_amount - inv.paid_amount;
                     totalPaid += inv.paid_amount; totalRemaining += rem; totalInsurance += inv.insurance_amount;
                     const badge = rem <= 0 ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">مدفوعة</span>` : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold text-[10px]">متبقي</span>`;
-                    tableHtml += `<tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]"><td class="p-3 font-bold">${inv.invoice_number}</td><td class="p-3">${name}</td><td class="p-3 font-mono">${inv.event_date || "-"}</td><td class="p-3 font-bold">${inv.total_amount.toFixed(3)}</td><td class="p-3 text-emerald-700">${inv.paid_amount.toFixed(3)}</td><td class="p-3 text-amber-800 font-bold">${rem.toFixed(3)}</td><td class="p-3">${badge}</td><td class="p-3 text-center"><button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">واتساب 💬</button></td></tr>`;
+                    tableHtml += `<tr class="hover:bg-[#FDFBF7]/80 text-[#5C3A21]"><td class="p-3 font-bold">${inv.invoice_number}</td><td class="p-3">${name}</td><td class="p-3 font-mono">${inv.event_date || "-"}</td><td class="p-3 font-bold">${inv.total_amount.toFixed(3)}</td><td class="p-3 text-emerald-700">${inv.paid_amount.toFixed(3)}</td><td class="p-3 text-amber-800 font-bold">${rem.toFixed(3)}</td><td class="p-3">${badge}</td><td class="p-3 text-center"><button onclick="quickWhatsApp('${phone}', '${name}', '${inv.invoice_number}', '${inv.event_date}', '${rem.toFixed(3)}')" class="bg-[#25D366] text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition-all duration-150 hover:bg-[#1ebd54] active:scale-90 border-b border-[#168a3d]">واتساب 💬</button></td></tr>`;
                 });
                 document.getElementById('statTotalInvoices').innerText = invoices.length;
                 document.getElementById('statTotalPaid').innerText = totalPaid.toFixed(3) + " ر.ع";
@@ -335,8 +329,6 @@
                 setAutomaticInvoiceId(); updateInvoicePreview(); fetchDashboardData();
                 document.getElementById('invoiceForm').addEventListener('input', updateInvoicePreview);
                 document.getElementById('btnSave').addEventListener('click', saveInvoiceToSupabase);
-                // تمرير true هنا لإجبار النظام على تحديث الجدول وتجاوز الحماية المسبقة
-                document.getElementById('btnRefreshDash').addEventListener('click', () => fetchDashboardData(true));
                 document.getElementById('btnWhatsApp').addEventListener('click', sendWhatsAppWithPDF);
                 document.getElementById('btnPrint').addEventListener('click', () => window.print());
             }
